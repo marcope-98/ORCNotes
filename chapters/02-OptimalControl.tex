@@ -1031,7 +1031,7 @@ Solve a \side{finite-horizon} OCP using the current state (that you measure or e
 subject to
 \begin{itemize}
 \item $x_{k+1} = f(x_k, u_k, k)\qquad\qquad k=0,...,N-1$
-\item $x_{k+1}\in\mathfrak{X}, \quad u_k\in\mathfrak{U}\qquad\qquad k = 0,...,N-1$
+\item $x_{k+1}\in\mathcal{X}, \quad u_k\in\mathcal{U}\qquad\qquad k = 0,...,N-1$
 \item $x_0 = x^{meas}$
 \end{itemize}
 The process to follow is:
@@ -1106,7 +1106,7 @@ If we take the standard finite horizon OCP:
 subject to:
 \begin{itemize}
 \item $x_{k+1} = f(x_k, u_k)\qquad k = 0,...,N-1$
-\item $x_k\in\mathfrak{X},\quad u_k\in\mathfrak{U}\qquad k= 0,...,N-1$
+\item $x_k\in\mathcal{X},\quad u_k\in\mathcal{U}\qquad k= 0,...,N-1$
 \item $x_0 = \bar{x}$
 \end{itemize}
 In order to ensure fisibility and stability we can extend the formulation using a terminal cost and terminal constraints:
@@ -1114,12 +1114,12 @@ In order to ensure fisibility and stability we can extend the formulation using 
 subject to:
 \begin{itemize}
 \item $x_{k+1} = f(x_k, u_k)\qquad k = 0,...,N-1$
-\item $x_k\in\mathfrak{X},\quad u_k\in\mathfrak{U}\qquad k= 0,...,N-1$
+\item $x_k\in\mathcal{X},\quad u_k\in\mathcal{U}\qquad k= 0,...,N-1$
 \item $x_0 = \bar{x}$
-\item $x_N\in\mathfrak{X_f}$
+\item $x_N\in\mathcal{X_f}$
 \end{itemize}
 
-The question remains: how can we choose $l_f(\cdot)$ and $\mathfrak{X}$?
+The question remains: how can we choose $l_f(\cdot)$ and $\mathcal{X}$?
 
 \subsection{Feasibility}
 When talking about feasibility we need to distinguish between two cases, because they are very different from each other:
@@ -1144,10 +1144,10 @@ In practice, this is almost the best thing that you could do (if you can do it).
 A set $S$ is \side{Control Invariant} if once you are inside the set you can stay inside the set.
 
 In mathematical term:
-A set $S$ is control invariant if $\forall x \in S, \exists u\in \mathfrak{U}$ s.t. the next state $f(x,u)\in S$.
+A set $S$ is control invariant if $\forall x \in S, \exists u\in \mathcal{U}$ s.t. the next state $f(x,u)\in S$.
 
 \begin{theorem}
-If $\mathfrak{X}_f$ is control invariant then MPC will be recursively feasible.
+If $\mathcal{X}_f$ is control invariant then MPC will be recursively feasible.
 \end{theorem}
 Visual proof:
 \begin{figure}[!h]
@@ -1173,7 +1173,7 @@ Which means that if the motor are sufficiently strong to compensate for gravity,
 Let us suppose that we have a system with linear dynamics:
 \[x^+ = Ax\qquad y=Cx\]
 And we have some constraints on the output (which are allowed to be nonlinear, and they can include state constraints and input constraints)
-\[y\in\mathfrak{Y} = \{y\in\mathbb{R}^p: h_i(y)\le 0, i=1,...,s\}\]
+\[y\in\mathcal{Y} = \{y\in\mathbb{R}^p: h_i(y)\le 0, i=1,...,s\}\]
 The objective of the algorithm is to find a specific control invariant set, that is the maximum output admissible set:
 \[O_{\infty} = \{x\in\mathbb{R}^n: h_i(CA^tx)\le 0, i=1,...,s, t=0,...,\infty\}\]
 which is the set of all initial states $x$, s.t. if you start in $x$ the constraints on the output are always satisfied.
@@ -1208,10 +1208,10 @@ If it is possible to do so, then you need to increase $t$ and keep going, whenev
 
 
 Fix $u= Kx$, which implies $x^+ = (A+BK)x$. Ultimately obtaining :
-\[y = \M{I\\K}x\qquad\mathfrak{Y} = \mathfrak{X}\times\mathfrak{U}\]
+\[y = \M{I\\K}x\qquad\mathcal{Y} = \mathcal{X}\times\mathcal{U}\]
 
 \begin{theorem}
-If $\mathfrak{X}_f$ is control invariant then the MPC is \side{persistently feasible}
+If $\mathcal{X}_f$ is control invariant then the MPC is \side{persistently feasible}
 \end{theorem}
 
 Proof plan:
@@ -1222,19 +1222,19 @@ Proof plan:
 \end{enumerate}
 \begin{proof}
 \begin{enumerate}
-\item Given $x_n \in \mathfrak{X}_f = \mathfrak{X}_n$ define \side{backward reachable sets} recursively:
-\[\mathfrak{X}_i = \{x\in\mathfrak{X}|\exists u\in\mathfrak{U}, \text{s.t. } f(x,u)\in\mathfrak{X}_{i+1}\}\]
-By definition, if $x_N  \in \mathfrak{X}_N$ then $x_i\in\mathfrak{X}_i\qquad\forall i \in[0,N-1]$
-\item If $X_f = \mathfrak{X}_N$ is control invariant, then $\mathfrak{X}_i$ is control invariant $\forall i$.
+\item Given $x_n \in \mathcal{X}_f = \mathcal{X}_n$ define \side{backward reachable sets} recursively:
+\[\mathcal{X}_i = \{x\in\mathcal{X}|\exists u\in\mathcal{U}, \text{s.t. } f(x,u)\in\mathcal{X}_{i+1}\}\]
+By definition, if $x_N  \in \mathcal{X}_N$ then $x_i\in\mathcal{X}_i\qquad\forall i \in[0,N-1]$
+\item If $X_f = \mathcal{X}_N$ is control invariant, then $\mathcal{X}_i$ is control invariant $\forall i$.
 
-Assume $\mathfrak{X}_{i+1}$ is control invariant. This is true if and only if $\forall x \in \mathfrak{X}_{i+1}$, which implies that $\exists u \text{ s.t. } f(x,u)\in \mathfrak{X}_{i+1}$.
+Assume $\mathcal{X}_{i+1}$ is control invariant. This is true if and only if $\forall x \in \mathcal{X}_{i+1}$, which implies that $\exists u \text{ s.t. } f(x,u)\in \mathcal{X}_{i+1}$.
 
 \begin{minipage}{.625\textwidth}
-So from $\mathfrak{X}_{i+1}$ you can stay in $\mathfrak{X}_{i+1}$.
+So from $\mathcal{X}_{i+1}$ you can stay in $\mathcal{X}_{i+1}$.
 
-We know that $\mathfrak{X}_i$ contains all states from which you can reach $\mathfrak{X}_{i+1}$ so we infer:
-\[\mathfrak{X_{i+1}}\subseteq \mathfrak{X}_i\]
-Since from $\mathfrak{X}_i$ you can reach $\mathfrak{X}_{i+1}$, which is contained in $\mathfrak{X}_i$, we infer that from $\mathfrak{X}_i$ you can stay in $\mathfrak{X}_i$ which implies that $\mathfrak{X}_i$ is control  invariant.
+We know that $\mathcal{X}_i$ contains all states from which you can reach $\mathcal{X}_{i+1}$ so we infer:
+\[\mathcal{X_{i+1}}\subseteq \mathcal{X}_i\]
+Since from $\mathcal{X}_i$ you can reach $\mathcal{X}_{i+1}$, which is contained in $\mathcal{X}_i$, we infer that from $\mathcal{X}_i$ you can stay in $\mathcal{X}_i$ which implies that $\mathcal{X}_i$ is control  invariant.
 \end{minipage}
 \hfill
 \begin{minipage}{.35\textwidth}
@@ -1242,10 +1242,10 @@ Since from $\mathfrak{X}_i$ you can reach $\mathfrak{X}_{i+1}$, which is contain
 \includegraphics[width=.95\textwidth]{image0208}
 \end{minipage}
 
-By induction, starting from $\mathfrak{X}_N$ we can show that $\mathfrak{X}_i$ is control invariant $\forall i <N$.
+By induction, starting from $\mathcal{X}_N$ we can show that $\mathcal{X}_i$ is control invariant $\forall i <N$.
 \item We can show that 
-\[\mathfrak{X}_i \subseteq \mathfrak{X}_0\]
-Since the next state $x_1\in\mathfrak{X}_1$  then it is true that $x_1\in\mathfrak{X}_0$. However this is true if and only if the next MPC problem is feasible because $\mathfrak{X}_0$ is the set of all states from which MPC is feasible (by definition of $\mathfrak{X}_0$)
+\[\mathcal{X}_i \subseteq \mathcal{X}_0\]
+Since the next state $x_1\in\mathcal{X}_1$  then it is true that $x_1\in\mathcal{X}_0$. However this is true if and only if the next MPC problem is feasible because $\mathcal{X}_0$ is the set of all states from which MPC is feasible (by definition of $\mathcal{X}_0$)
 \end{enumerate}
 \end{proof}
  
@@ -1281,7 +1281,7 @@ V_1(x_1) - V_0^*(x_0) &= \sum_{i=1}^{N}l(x_i,u_i) + l_f(x_{N+1}) - \sum_{i=0}^{N
 &= l(x_N, u_N) + l_f(x_{N+1}) - l_f(x_N) - l(x_0, u_0)
 \end{align*}
 if i am able to prove that:
-\[V_1(x_1) - V_0^*(x_0)  = l(x_N, u_N) + l_f(x_{N+1}) - l_f(x_N) - l(x_0, u_0) \le -\alpha_3 \norma{x_0}\qquad \forall x_N\in\mathfrak{X}_f\]
+\[V_1(x_1) - V_0^*(x_0)  = l(x_N, u_N) + l_f(x_{N+1}) - l_f(x_N) - l(x_0, u_0) \le -\alpha_3 \norma{x_0}\qquad \forall x_N\in\mathcal{X}_f\]
 then the value function is an exponential Lyapunov function and I can use it to prove the stability of the origin for my system when it is controlled by the MPC.
 
 One thing to notice is that $V_0^*$ is the \side{optimal value function} (i.e. the states and controls are optimal) , whereas for$V_1$ we assumed that we have used the values of the optimal state and control until $x_N$ and $u_N$ computed at the previous time step.
@@ -1315,33 +1315,33 @@ x^+ - x^* = f(\bar{x}+x^*, \bar{u} + u^*) - x^*\\
 So that $\bar{f}(0,0) = f(0+x^*, 0+u^*) - x^* = 0$
 \end{proof}
 \item The union of the state space and control space is a \side{closed set} (set that contains the boundaries):
-\[\mathfrak{X} \times \mathfrak{U} \text{ is closed}\]
+\[\mathcal{X} \times \mathcal{U} \text{ is closed}\]
 The terminal set is a \side{compact set} ($\approx$ closed + bounded set)
-\[\mathfrak{X}_f \text{ is compact}\]
+\[\mathcal{X}_f \text{ is compact}\]
 
 \item  For every state in the terminal constraint set there must exists a value of the control a collection of conditions must be respected.
 
 Formally:
-\[\forall x \in \mathfrak{X}_f\,\,\exists u \in \mathfrak{U} \text{ s.t.}\]
+\[\forall x \in \mathcal{X}_f\,\,\exists u \in \mathcal{U} \text{ s.t.}\]
 \begin{enumerate}
-\item $\mathfrak{X}_f$ is control invariant
-\[f(x,u)\in \mathfrak{X}_f\]
+\item $\mathcal{X}_f$ is control invariant
+\[f(x,u)\in \mathcal{X}_f\]
 and the terminal cost decreases
 \[l_f(f(x,u)) - l_f(x) \le - l(x,u)\]
 \item There must exists 2 positive scalar, such that the running cost is lower bounded and the terminal cost is upper bounded, i.e.
 $\exists \alpha_1, \alpha_f > 0$ s.t.
 \begin{align*}
-l(x,u)&\ge \alpha_1 \norma{x} & \forall x\in \mathfrak{X}_N, \quad \forall u\in\mathfrak{U}\\
-l_f(x)&\le \alpha_f \norma{x} & \forall x \in \mathfrak{X}
+l(x,u)&\ge \alpha_1 \norma{x} & \forall x\in \mathcal{X}_N, \quad \forall u\in\mathcal{U}\\
+l_f(x)&\le \alpha_f \norma{x} & \forall x \in \mathcal{X}
 \end{align*}
-where $\mathfrak{X}_N$ is the set of states from which OCP has a solution
+where $\mathcal{X}_N$ is the set of states from which OCP has a solution
 \end{enumerate}
 \end{enumerate}
 If these three assumptions are satisfied then $V_N^*(\cdot)$ is an exponetial Lyapunov function and therefore the origin is exponentially stable.
 
 
 \begin{proof}
-\[V_1(x_1) - V_0^*(x_0)  = l(x_N, u_N) + l_f(x_{N+1}) - l_f(x_N) - l(x_0, u_0) \le -\alpha_3 \norma{x_0}\qquad \forall x_N\in\mathfrak{X}_f\]
+\[V_1(x_1) - V_0^*(x_0)  = l(x_N, u_N) + l_f(x_{N+1}) - l_f(x_N) - l(x_0, u_0) \le -\alpha_3 \norma{x_0}\qquad \forall x_N\in\mathcal{X}_f\]
 where:
 \begin{itemize}
 \item $l(x_N, u_N) + l_f(x_{N+1}) - l_f(x_N) \le 0$ 
@@ -1358,7 +1358,7 @@ So we can be sure that the summation of these two will always be less that some 
 Let us consider a linear system with dynamics:
 \[x^+ = Ax + Bu\]
 with some control constraints and state constraints:
-\[u\in\mathfrak{U} \qquad x\in\mathfrak{X}\]
+\[u\in\mathcal{U} \qquad x\in\mathcal{X}\]
 Whenever we have control and state constraints it is hard to find a global \side{Control Lyapunov Function (CLF)}.
 For this reason we aim to find a local CLF inside a given region, called \side{invariant region} (given that it has the control invariant property).
 
@@ -1411,24 +1411,24 @@ We obtained that the terminal cost defined as the unconstrained value function c
 Note: $K$ could takes an arbitrary value, as long as the assumption are satisfied
 \item \textbf{Terminal constraints}
 
-Choose $\mathfrak{X}_f$ so that $u=Kx\in\mathfrak{U} \forall x\in\mathfrak{X}_f$ and $u=Kx$ makes $\mathfrak{X}_f$ will be positive invariant.
+Choose $\mathcal{X}_f$ so that $u=Kx\in\mathcal{U} \forall x\in\mathcal{X}_f$ and $u=Kx$ makes $\mathcal{X}_f$ will be positive invariant.
 
-We can choose $\mathfrak{X}_f$ to be maximal invariant constrait admissible set for $x^+=(A+BK)x$.
+We can choose $\mathcal{X}_f$ to be maximal invariant constrait admissible set for $x^+=(A+BK)x$.
 \end{itemize}
 
 In summary:
 \begin{enumerate}
-\item We can pick $\mathfrak{X}_f$ and $l_f(\cdot)$ such that:
+\item We can pick $\mathcal{X}_f$ and $l_f(\cdot)$ such that:
 \begin{itemize}
-\item $\mathfrak{X}_f$ is control invariant
-\item $\forall x \in \mathfrak{X}_f\,\exists u \in \mathfrak{U}$ s.t. $l_f(f(x,u)) - l_f(x) \le - l(x,u)$
+\item $\mathcal{X}_f$ is control invariant
+\item $\forall x \in \mathcal{X}_f\,\exists u \in \mathcal{U}$ s.t. $l_f(f(x,u)) - l_f(x) \le - l(x,u)$
 \end{itemize}
-\item We can pick $\mathfrak{X}_f = \{0\}$, i.e. picking the origin are your terminal constraint set.
+\item We can pick $\mathcal{X}_f = \{0\}$, i.e. picking the origin are your terminal constraint set.
 
 Both conditions of the previous point are satisfied: the first one by definition given that the origin is control invariant, the second one is satisfied given that the terminal cost and the running cost at the origin are zero.
 
 However this method results in a \side{small basin of attraction}, because you are constraining the terminal state to be in a set with just one point.
-\item  We can pick $N$ ``large enough'' and set $l_f(x) = 0, \mathfrak{X}_f = \mathfrak{X}$. With nonlinear systems such as robots, that is what many people do (sadly).
+\item  We can pick $N$ ``large enough'' and set $l_f(x) = 0, \mathcal{X}_f = \mathcal{X}$. With nonlinear systems such as robots, that is what many people do (sadly).
 \end{enumerate}
 
 \subsubsection{Stability-Extensions}
@@ -1445,7 +1445,7 @@ In this case we can cast the trajectory tracking as regulation of time-varying s
 
 So the good news is that the theory can be extended to a time varying system:
 
-Stability and recursive feasibility can still be ensured with time-varying $\mathfrak{X}_f$ and $l_f(\cdot)$.
+Stability and recursive feasibility can still be ensured with time-varying $\mathcal{X}_f$ and $l_f(\cdot)$.
 \item \textbf{What if the cost function measures some sort of energy consumption?}
 
 Another situation arises when the cost function measures some sort of energy consumption (quite common). In that case one of the assumptions that we took is not satisfied, i.e.
@@ -1488,14 +1488,14 @@ In practice, what happens is that when we are at state $x$, we apply control $u$
 There are two main approaches to deal with uncertainties.
 \subsubsection{Robust MPC}
 In the \side{Robust MPC approach}, basically you consider the next state $x^+$ as a function of the state, the control input and the noise (with the noise bounded in a certain set), i.e.
-\[x^+ = f(x,u,w)\qquad w\in \mathfrak{W}\]
+\[x^+ = f(x,u,w)\qquad w\in \mathcal{W}\]
 As a consequence the generic constraint of the problem needs to be satisfied for every uncertainty that my happens
 \[g(x,u,w)\le0\qquad \forall w\in W\]
 In this way, i will always maintain a safety margin w.r.t. the constraint boundary and this safety margin is what allows us to ensure that the constraints will be satisfied for any possible uncertainty realization.
 
 \subsubsection{Stochastic MPC}
 Another approach is to define the uncertainty not simply bounded but it is a \side{stocastic uncertainty}, very often model with a \side{Gaussian distribution} with zero mean:
-\[w ~ \mathfrak{N}(0,\Sigma)\]
+\[w ~ \mathcal{N}(0,\Sigma)\]
 In this case, since the uncertainty is Gaussian you cannot hope that the constraints will be satisfied for every possible value, given that it has a small probability of being infinitely large. So tipically, you impose that the probability of the constraint to be satisfied is greater than some value:
 \[Pr[g(x,u,w)\le0] \ge 0.95\]
 
