@@ -1,0 +1,283 @@
+\chapter{Reactive Control}
+
+\section{Robot Dynamic Modeling}
+In this section we are going to review \side{Multibody dynamics modeling}. A few things that we will define today are:
+\begin{itemize}
+\item Kinematics model (forward)
+\item Statics
+\item Dynamics
+\end{itemize}
+
+and in doing so we are going to see:
+\begin{itemize}
+\item Homogeneous matrix
+\item concept of Jacobian
+\item \textellipsis
+\item $M\,\ddot{q} + C\,\dot{q} + g(q) = \tau + J^{T}\,w$
+\end{itemize}
+
+A \side{Robot Manipulator} is a set/collection of rigid bodies (\side{links}) connected together by \side{joints} (which can be either revolute or prismatic).
+
+Tipically joints are not passive i.e. they are connected to an actuation system (e.g. electric motor with a gear box that can actuate the joints by providing torque, this torque is then translated into an acceleration which is gonna create some motion).\\
+The reason for the combination motor + transmission is because electric motor provides small torque and high velocity, but what we need in the actuation of the robotic arm is high torque and low velocity.\\
+Therefore the presence of a trasmission trades off the velocity for torque.
+
+What we are going to be discussing is what the relationship between the torque that is provided by the motors and the resulting acceleration that is generated on the joints and how this affect the motion of the whole robot, especially the \side{end-effector}, where the gripper is generally placed.
+
+% insert image of robot manipulator 0:09:40 - 02
+
+By $q_i$ we denote to the i-th joint coordinate and by $q$ a common vector containing all the joint coordinates (\side{configuration vector}).
+\[
+q = \M{q_1\\q_2\\\textellipsis\\q_n}
+\]
+
+To represent the configuration of the robot in space the only thing that we need to know are the angles of the joints (that are measured w.r.t. a reference angle considered to be zero).
+
+When working with rigid bodies in 3D space, a quantity that is very useful to know is the \side{Homogeneous Transformation matrix}, that is used to define the relative pose of two rigid bodies in space.
+
+\subsection{Homogeneous Transformation Matrix}
+
+Let us consider 2 rigid bodies, each with a reference frame attached to it.
+
+% image 0:13:58 - 02
+
+Then we can define a Homogeneous matrix in the form:
+\begin{equation*}
+H_1^0 = 
+\begin{bNiceArray}{cw{c}{1cm}c|c}[margin]
+\Block{3-3}<\Large>{R_1^0} & & & \\
+ & & & p\\
+& & &  \\
+\hline
+0 & 0& 0 & 1
+\end{bNiceArray}
+\end{equation*}
+
+where the rotation matrix containes the axes of frame 1 in the reference frame 0
+\[R_1^0 = \M{x_1^0&y_1^0&z_1^0}\]
+The rotation matrix has the property that its inverse is equal to its transpose (orthonormal matrix)
+\[R_1^0 = (R_0^1)^{-1} = (R_1^0)^T\]
+Now that we have defined Homogeneous matrix we can use them to define the kinematics, i.e. geometry of the manipulator.
+We can in fact define a reference frame attached to each link and a homogeneous matrix to represent the relative pose of each frame w.r.t. the previous one.
+
+Once we have this chain of homogeneous transformation matrices, we can put them together by matters of matrix multiplication and obtain the global homogeneous transformation that defines the pose of the end effector w.r.t. frame 0 (atteched to the ground). So this gives us the pose of the end-effector in the world.
+
+Given a sequence of frames that have different positions and orientations terminating with an end effector frame. We can define for each link a transformation matrix. If we want to compute the global transformation from 0 to n when n is the frame attached to the end effector, we can just multiply all the matrices together.
+
+Once we apply this method to a serial manipulator what we get is that the homogeneous transformation from the frame i-1 to i will depend only on the i-th joint coordinate/angle.
+
+Each joint angle changes one homogeneous transformation but the global one will depend on all the joint coordinates 
+\[H_n^0(q_1, q_2,\textellipsis, q_n) = H_n^0(q)\]
+
+\subsection{Representation of orientation}
+A quick notes on how to represent orientation.
+The problem with transformation matrices is that they are very redundant so you need a $3\times 3$ matrix, 9 numbers to represent an orientation.
+Actually an orientation is 3 dimensional quantity, so in general it is not really practical to use a rotation matrix which contains 9 number to represent something that is a 3 dimensional information.
+
+Theer are other ways to represent a 3D orientation:
+\begin{itemize}
+\item{\makebox[3cm]{Rotation matrix \hfill} $3\times3$, redundant representation}
+\item{\makebox[3cm]{Euler angles \hfill} $3$, minimal representation}
+\item{\makebox[3cm]{Roll-Pitch-Yaw\hfill}  $3$, minimal representation}
+\item{\makebox[3cm]{Angle-axis\hfill} $4$, redundant representation}
+\item{\makebox[3cm]{Quaternions \hfill} $4$, redundant representation}
+\end{itemize}
+
+Minimal representation is the minimum number of parameters to define a 3D quantity. The problem with minimal representation is that they have singularities i.e. points in the orientation space where a very small change in the orientation of the body results in a very large change in Euler angles and RPY. This is the reason why we usually do not use them, even though they have an underling geometric meaning.
+
+\subsection{Differential Kinematics}
+
+By differentail kinematics, we refer to the relationship between the velocity of the joints of the robot and the velocity of all end-effector (in general the velocity of all the links).
+
+We are interested mainly in the geometrical approach to differential kinematics.
+What we want to compute is the velocity of the end-effector $^0v_e$ w.r.t. frame 0, intertial frame.
+\[^0v_e = \M{\dot{p_e}\\\omega_e}\]
+that contains the linear velocities and the angular velocities.
+
+In order to compute the velocity of the end-effector we need to know the velocities of the joints of the robot and that is tipically measured by sensors and the relationship between the velocity of the joints and the velocity of the end-effector.
+This relationship is defined by  a matrix that is called Jacobian of the kinematic chain.
+
+We can actually derive the elements of the jacobian by writing down the relationship between the relative velocity of each link of the robot w.r.t. the previous links' frame.
+Similarly to what we have done with homogeneous matrices, we chain them alltogether by matter of matrix multiplication.
+\begin{gather}
+^0\dot{p}_n = ^{n-1}\dot{p}_n + ^0\dot{p}_{n-1} = ^{n-1}\dot{p}_n + ^{n-2}\dot{p}_{n-1} + ^0\dot{p}_{n-2} = \sum_{i=0}^{n-1} {^i\dot{p}_{i+1}}\\
+^{i-1}\dot{p}_i = \begin{dcases}
+[\hat{z}_i \times (p_i - p_{i-1})]\,\dot{q}_i = J_{pi}\,\dot{q_i}&\text{Revolute}\\
+\hat{z}_i\,\dot{q}_i = J_{oi} \,\dot{q}_i&\text{Prismatic}
+\end{dcases}\\
+^0\dot{p}_n = \sum_{i=0}^{n-1}\,J_{pi+1}\,\dot{q}_{i+1} = J_p\,\dot{q}\\
+^0\omega_n = \sum_{i=0}^{n-1}\,J_{oi+1}\,\dot{q}_{i+1} = J_o\,\dot{q}
+\end{gather}
+Therefore we can represent the relationship between the joint coordinate velocity and the end effector velocity in the following compact form:
+\[^0v_e = \M{J_p\\J_o}\,\dot{q} = J(q)\,\dot{q}\]
+
+There exists an analitical approach, where we see the pose of the end-effector as a function of the joint angles.
+\begin{gather*}
+\phi_n = \M{x_n\\y_n\\z_n\\\zeta_n\\\theta_n\\\psi_n} = \phi_n(q)
+\end{gather*}
+
+Having this representation, we can derive it with respect to time and exploit the chain rule to compute the relationship of the end-effector velocity and the joint coordinates velocity.
+\[\dot{\phi} = \pd{\phi}{q}\,\td{q}{t} = \pd{\phi}{q}\,\dot{q}\]
+The matrix of partial derivatives of the pose with respect to the joint coordinates is the analitical Jacobian. 
+
+Note that the analitical jacobian is different from the geometrical jacobian: in particular the translational part is the same but the rotational part is different
+\[\M{J_p\\J_{Ao}} = J_A \ne J = \M{J_P\\J_o}\]
+This is not a surprise because in the analitacal approach we used the derivative of Euler angles whereas in the geometrical approach we used the angular velocity, and these two quantities are different.
+
+\subsection{Statics}
+
+Problem formulation: given \side{wrench} (force + moment) applied at the end-effector, we want to compute the joint torques generated by this wrench.
+
+The way we can compute this relationship between the wrench adn the joint torques is by equating the total power of the system on the end-effector space and the power that is computed in the joint space.
+
+These two quantities must be equal indipendently of where it compute it.
+
+\begin{enumerate}
+\item Power at the joints:
+\[P_{\tau} = \tau^T\,\dot{q}\]
+\item Power at the end-effector:
+\[P_e = f^T\,\dot{p}+m^T\,\omega = \M{f^T&m^T}\,\M{\dot{p}\\\omega} = w^T\,v = w^T\,J\,\dot{q}\]
+\end{enumerate}
+
+Equating the two expressions:
+\[\tau^T\,\dot{q} = w^T\,J\,\dot{q}\quad\forall\dot{q}\]
+ and infere that:
+ \begin{align*}
+ \tau^T &= w^T\,J\\
+ \tau &= J^T\,w
+ \end{align*}
+ 
+ \subsection{Dynamics}
+ 
+ Inside the field of dynamics there are two main problems: forward/direct dynamics and inverse dynamics.
+ The difference between these two problems is what you want to compute and what are your inputs.
+ 
+ So let us define them:
+ \begin{itemize}
+ \item \side{Direct dynamics}: $q, \dot{q}, \tau$ are known and we want to compute $\ddot{q}$.
+ 
+ Usually this is the problem to solve during simulations.
+ \item \side{Inverse dynamics}: $q, \dot{q}, \ddot{q}$ are known and we want to compute $\tau$.
+ 
+ Usually this is the problem solved in controllers.
+ \end{itemize}
+ 
+ But they are both based on the same equation.
+ 
+ The final equation for the multibody dynamics is:
+ \[M(q)\,\ddot{q} + C(q,\dot{q})\,\dot{q} + g(q) = \tau + J(q)^T\,w\]
+ where:
+ \begin{itemize}
+ \item{\makebox[2cm]{$M(q)$\hfill}$\in \mathbb{R}^{n\times n}$ is the mass matrix, it is always positive-definite and symmetric}
+ \item{\makebox[2cm]{$C(q,\dot{q})$\hfill}$\in \mathbb{R}^{n \times n}$ accounts for centrifugal and Coriolis effect}
+ \item{\makebox[2cm]{$g(q)$\hfill}$\in \mathbb{R}^{n}$ accounts for gravity torques}
+ \end{itemize}
+ 
+ The mathematical formulation of this expression is non linear, because C, M and g depends on $q$ and $\dot{q}$.
+ 
+ What is good about this equation is that if you know $q$ and $\dot{q}$ at a specific instant then M, C and g becomes constant and the relationship becomes linear in $\ddot{q}, \dot{q}$ and $w$.
+ 
+ Most of the time we will refer to:
+ \[C(q, \dot{q})\,\dot{q} + g(q) = h(q, \dot{q})\]
+
+%--------------------------------
+\section{Joint Motion control}
+ We have a given motion that we would like the robot to track. This motion is specified in terms of a \side{reference joint trajectory}, and we want to find a controller that is able to follow this trajectory as accurately as possible. When we say that we want to find a controller, what we mean is that we want to find a mathematical law that is able to give us the joint torques (control inputs of the system) as a function of the joint angles and joint velocity (state of the system).
+ 
+Formally: given a reference joint trajectory $q^{ref}(t)$, compute the joint torques $\tau(t)$ such that $q(t) \approx q^{ref}(t)$.
+Assumption: the system dynamics is known, i.e. $M\,\ddot{q} + h = \tau$, and there is no contact with the environment (i.e. $w = 0$).
+
+\subsection{Open-Loop control}
+A very simple idea is to compute the joint torques is simply to compute $\ddot{q}^{ref}(t)$ and $\dot{q}^{ref}(t)$ of the reference dynamics and obtain the control input torques ($\tau(t)$) by substituting these quantities in the system dynamics formulation.
+\[\tau(t) = M(q^{ref}(t))\,\ddot{q}^{ref}(t) + h(\dot{q}^{ref}(t), q^{ref}(t))\]
+This controller approach is openloop because it does not use the current state of the system in the control law.
+
+However, the problem with open-loop control works only if:
+\begin{itemize}
+\item there is no perturbation acting on the system
+\item the initial state of the robot needs to match the initial state of the reference trajectory. 
+\begin{gather*}
+q(0) = q^{ref}(0) \qquad;\qquad \dot{q}(0) = \dot{q}^{ref}(0)
+\end{gather*}
+\item you have perfect knowledge of the model.
+\end{itemize}
+
+\subsection{PID control}
+The idea is to compute the joint torques in a way that is proportional to the tracking error, its derivative and its integral.
+\[\tau(t) = k_p (q^r(t) - q(t)) + k_d\,(\dot{q}^r(t)-\dot{q}(t)) + k_i \int_0^t(q^r(s) - q(s))\,ds\]
+where $k_p, k_d, k_i$ are positive-definite, diagonal gain matrices.
+
+The controller is not open loop anymore because we are using the feedback on the state of the system (joint position and velocities).
+
+In order to implement this controller, sensors are needed that measure at least the joint angles.
+
+This works quite well and many robots in the industry are actually controlled with PID, because it is very simple and you need zero knowledge about the dynamics of the system.
+
+If we have $\dot{q}^{ref} = 0$ (i.e. static configuration) then we have a guarantee of convergence i.e. $q(t) \to q^{ref}(t)$.
+proof:
+\[M\,\ddot{q} + C\,\dot{q} + g = \tau = k_p \, e + k_d \dot{e} + k_i \int_0^t e\,ds\]
+At steady state ($\dot{q} = \ddot{q} = 0$) we obtain:
+\[g = k_p e + k_i \int_0^t e\,ds\]
+taking the derivative of this equation:
+\[k_p\,\dot{e} = -k_i e\]
+which is linear dynamical system which is stable as well because $k_p$ and $k_i$ are positive-definite and diagonal. This means that the error dynamics is in the form:
+\[\dot{e} = -k_p^{-1}\,k_i\,e\]
+which eigenvalues are negative and therefore $e\to 0$
+
+\subsection{PD + gravity compensation}
+We can make use of the model dynamics in order to improve the tracking performance.
+
+We are going to use only a part of the model dynamics (the gravity torque), in order to compensate for the torque due to gravity, but for the rest we are not going to use our knowledge of the model, but instead we are going to utilize a PD controller.
+
+\[\tau(t) = k_p (q^r(t) - q(t))  + k_d (\dot{q}^r(t) - \dot{q}(t)) + g(q(t))\]
+
+If we imagine to eliminate the $k_p$ and $k_d$ terms, then we obtain a controller that will mantain the robot still and it acts as if there is no gravity.
+
+This controller works better than PID alone.
+
+The steady state analysis yields:
+\[\cancel{g} = k_p\,e + \cancel{g}\]
+which implies that 
+\[k_p e = 0\]
+If the controller converges and reaches a steady state, than it must be a steady state where the error is equal zero (only possible solution).
+
+Of course in this controller we are using some knowledge of the system dynamics (i.e. the gravity term), therefore we need to haev an estimate of the gravity compensation and a way to compute it sufficiently fast to be used inside our controller (which tipically is not a problem).
+
+in general, PID controller is preferred (not better) because it works indipendently of where it is applied, but with PD+gravity compensation we have a gain less to tune.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,81 @@
+\chapter{Reinforcement Learning}
+\section{Introduction}
+\side{Reinforcement Learning (RL)}, much like Optimal control, is a mathematical framework that allows us to solve optimal control problems.
+
+In some sense is very similar to Optimal control, but with a very big difference: in Optimal control, you tipically assume to know the analytical/mathematical model of the system that you want to control, whereas in Reinforcement learning you don't.
+
+Either you do not know the mathematical relation between input and state or you may assume that you have a simulator, but you do not have access to code.
+
+Of course, since we have less information it is a much more difficult problem than optimal control, but they share the same structure and some of the key concepts (e.g value function).
+
+A few differene between Reinforcement learning and Optimal control are:
+\begin{itemize}
+\item Optimal control was born in the control community, whereas reinforcement learning was born in the Computer Science community.
+\item RL tries to find the \side{gloablly optimal policy}
+\item RL assumes that the dynamics are unknown
+\item Initally the community of RL was focused on problems in which the state and the control spaces were finite
+\item RL uses different terminology than optimal control, with different names and symbols, even though they represent the same concept
+\item tipically RL assumes the dynamics of the system to be stochastic (randomness on the state of the system)
+
+However we will not take this assumption in this module (not a big deal), for sake of simplicity.
+\item tipically RL literature focuses on optimizing over an infinite horizon
+\end{itemize}
+
+\section{Terminology comparison}
+
+\begin{table}[!h]
+\centering
+\begin{tabularx}{\textwidth}{|X|X|}
+\toprule
+\textbf{Reinforcement Learning}&\textbf{Optimal control}\\
+\toprule
+State $s$& State $x$\\
+Action $a$& Control $u$\\
+Environment & Plant \\
+Reward& Cost function\\
+Return & Cost-to-go\\
+Maximize&Minimize\\
+Value function & Cost to go of a policy\\
+Optimal Value function& Value function (Cost to go of the optimal policy)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Framework: Markov Decision Processes (MDP)}
+\side{Markov Decision Processes (MDP)} are used to describe the environment in Reinforcement Learning problems, which is assumed to be a \side{fully observable environment} and it has \side{Markov property}.
+
+Markov property means that if you know the current state of the system than knowing the past states does not add any information.
+The state tells you everything you know about the system.
+
+Or in other terms: the future is independent on the past given the present.
+\[\mathbb{P}(x_{t+1}|x_t) = \mathbb{x_{t+1}|x_1,...,x_t}\]
+It can be immediately seen that the system is considered stochastic.
+
+The motion of the state is defined by the \side{State transition probability} which the probability of going from one state $x$ to another state $x'$
+\[\mathfrak{P}_{xx'} = \mathbb{P}(x_{t+1} = x' | x_t=x)\]
+Since in classical Reinforcement Learning you assume that the size of the state space is finite, then you can collect together all the state transition probabilities in a big matrix, called \side{State Transition matrix}.
+\[\mathfrak{P}=
+\begin{bNiceArray}{ccc}
+\mathfrak{P}_{11}&\Cdots&\mathfrak{P}_{1n}\\
+\Vdots &\Ddots&\Vdots\\
+\mathfrak{P}_{n1}&\Cdots&\mathfrak{P}_{nn}
+\end{bNiceArray}\]
+The sum of each row of the matrix will be 1. In deterministic systems $\mathfrak{P}$ contains only 0 and 1.
+
+\subsection{Markov Process or Markov Chain}
+
+A \side{Markov Process} is defined by a tuple $<\mathfrak{X}, \mathfrak{P}>$, where:
+\begin{itemize}
+\item $\mathfrak{X}$ is a finite set of states
+\item $\mathfrak{P}$ is the \side{state transition probability matrix}
+\end{itemize}
+A Markov Process is also known as a \side{Markov Chain}
+\missingfigure{33:16}
+
+In particular the state transition probability matrix has the following property:
+\begin{enumerate}
+\item Since $\mathfrak{P}$ has all nonegative entries, and it is also \side{irreducible} (associated to a \side{strongly connected graph}), by using \side{Perron-Frobenius theorem} we know that:
+\begin{itemize}
+\item The largest (in nom) eigenvalue $r$ of $\mathfrak{P}$ satisfies the following inequalities:
+\end{itemize}
+\end{enumerate}

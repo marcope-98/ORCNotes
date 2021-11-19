@@ -1,0 +1,55 @@
+\documentclass[a4paper, 10pt, oneside, draft]{report}
+\usepackage[utf8]{inputenc}
+
+\pdfcompresslevel=0
+\pdfobjcompresslevel=0
+
+
+\input{lib/includes}
+\input{lib/acronyms}
+\input{lib/commands}
+
+
+\title{Advanced Optimization-based Robot Control}
+\author{Marco Peressutti\\230403\\marco.peressutti@studenti.unitn.it}
+\date{\today}
+
+
+
+\includeonly{
+chapters/01-ReactiveControl, %
+chapters/02-OptimalControl,%
+chapters/03-RL,%
+chapters/0A-NumericalIntegration,%
+chapters/0B-LyapunovStability}
+	
+\addbibresource{{bib/bibliography.bib}}
+\graphicspath{{images/}}
+\makeglossaries
+
+\begin{document}
+ 
+\maketitle
+\printglossaries
+\tableofcontents
+%\begin{empheq}[box=%
+%	\fbox]{gather*}
+%		\mathbf{OP} = f(q_1,\dots,\,q_N,\,t)
+%	\end{empheq}
+	
+
+\clearpage
+
+%\include{chapters/01-ReactiveControl}
+\include{chapters/02-OptimalControl}
+%\include{chapters/03-RL}
+
+%\include{chapters/0A-NumericalIntegration}
+%\include{chapters/0B-LyapunovStability}
+
+\clearpage
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{{Bibliography}}
+\printbibliography[heading=bibempty]
+
+\end{document}

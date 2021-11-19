@@ -1,0 +1,39 @@
+\defbibheading{bibempty}{}
+
+\newcommand{\M}[1]{\begin{bmatrix}#1\end{bmatrix}}
+\newcommand{\und}[1]{\underline{#1}}
+\newcommand{\B}[1]{\begin{Bmatrix}#1\end{Bmatrix}}
+\newcommand{\pd}[2]{\cfrac{\partial#1}{\partial#2}}
+\newcommand{\td}[2]{\cfrac{d#1}{d#2}}
+\newcommand{\tdd}[2]{\cfrac{d^2#1}{d#2^2}}
+\newcommand{\pdd}[2]{\cfrac{\partial^2#1}{\partial#2^2}}
+\renewcommand{\theta}{\vartheta}
+\newcommand{\omissis}{[\textellipsis\unkern]}
+\newcommand{\pexp}[2]{\prescript{#1}{}{#2}{}{}}
+\newcommand{\ret}[1]{{#1}^{\leftarrow}}
+\renewcommand{\epsilon}{\varepsilon}
+\newcommand{\smalltodo}[2][]{\todo[caption={#2}, #1, backgroundcolor=white!20!white, bordercolor=white]{\begin{spacing}{0.5}\texttt{#2}\end{spacing}}}
+\newcommand{\side}[1]{#1\smalltodo[size=\footnotesize]{#1}}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norma}{\lVert}{\rVert}
+\newcommand{\degr}[1]{^{\circ\!#1}}
+\DeclareMathOperator*{\minimize}{minimize}
+\DeclareMathOperator*{\argmin}{argmin}
+\newtheorem{theorem}{Theorem}
+
+\makeatletter
+\newcommand\incircbin
+{%
+  \mathpalette\@incircbin
+}
+\newcommand\@incircbin[2]
+{%
+  \mathbin%
+  {%
+    \ooalign{\hidewidth$#1#2$\hidewidth\crcr$#1\bigcirc$}%
+  }%
+}
+\newcommand{\ooplus}{\incircbin{+}}
+\newcommand{\oominus}{\incircbin{-}}
+\newcommand{\oocirca}{\incircbin{\sim}}
+\makeatother

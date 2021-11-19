@@ -1,0 +1,31 @@
+\chapter{Lyapunov Stability}
+\section{Exponential Lyapunov functions}
+Stability of a method can be proved using \side{Lyapunov functions}, which are one of the main tools to prove stability of nonlinear systems.
+
+\textbf{Def:} A set $S$ is \side{positive invariant} if $\forall x \in S$ the next state is also inside the set, i.e. $f(x) \in S$.
+
+In other terms if $x$ starts in $S$ then it stays inside $S$.\newline
+
+\textbf{Def:} Suppose $\mathfrak{X}$ is positive invariant, a value function $V: \mathbb{R}^n \to \mathbb{R}^+$ is an \side{exponential Lyapunov function} if $\exists \alpha_1, \alpha_2, \alpha_3 > 0$ (three positive constants) s.t. $\forall x \in \mathfrak{X}$, the following conditions are satisfied:
+\begin{align*}
+V(x)&\ge \alpha_1 \norma{x}\\
+V(x)&\le \alpha_2 \norma{x}\\
+V(f(x))-V(x)&\le -\alpha_3\norma{x}
+\end{align*} 
+Which means that the value function needs to be 
+\begin{itemize}
+\item lower bounded
+\item upper bounded 
+\item decreasing exponentially along the trajectory of $x$.
+\end{itemize}
+
+The following theorem specifies when the system is \side{exponentially stable}, i.e.:
+\[\norma{x_k}\le c\,\gamma^k\,\norma{x_0} \quad \text{for some } c >0 \text{ and } \gamma\in[0,1]\]
+\begin{theorem}
+If $\exists$ a Lyapunov function then the \side{origin} (state $x=0$) of the system is exponentially stable in the set $\mathfrak{X}$.
+
+If $\mathfrak{X} = \mathbb{R}^n$ then the origin is globally exponentially stable.
+\end{theorem}
+
+Even though this theorem can be applied to stabilize the origin, it can be extended to an arbitrary state.
+
