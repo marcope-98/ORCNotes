@@ -3,8 +3,9 @@ This repository contains the notes of the course 145873 - Optimisation Based Rob
 
 # Known Issues #
  * Chapter 1: Reactive Control       (incomplete + figures and plots missing)
- * Chapter 2: Optimal Control        (figures and plots missing)
+ * Chapter 2: Optimal Control        (awaiting final review)
  * Chapter 3: Reinforcement Learning (ongoing)
+ * Appendices: In general missing only images
 
 # Frequently asked questions: #
 > A white box appears instead of images and plots.
