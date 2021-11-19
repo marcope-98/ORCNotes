@@ -9,8 +9,11 @@ Optimal control is quite different type of control theory w.r.t. reactive contro
 Optimal control was born in the XVII century and was created by Bernoulli (1696). The first control problem that was solved can be described as follows:
 
 Imagine that you have a ball in a certain position A and you would like that ball to reach a target position B.
-
-\missingfigure{04:15}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.35\textwidth]{image0201}
+\caption{Comparison of three different paths: straight line (dashed), maximum initial acceleration path (continuous) and brachistocrone (dotted)}
+\end{figure}
 Under this condition Bernoulli asked himself, what is the shape of the ground so that the ball in A reaches B in minimum time?
 
 Several possibilities can be considered:
@@ -99,10 +102,17 @@ where
 \item $x \triangleq (q, \dot{q})$
 \item $u \triangleq \tau $
 \end{itemize}
-\missingfigure{30:21}
 
+\begin{minipage}{.6\textwidth}
 However the formulation of the running cost will make the robot manipulator reach $q = 0\degr{}$ as fast as possible, and maybe it is not something that you want. For this reason, additional terms are also included in the running cost. e.g, 
 \[\int_0^T (q(t)^2 + u(t)^2 + \dot{q}(t)^2)\,dt\]
+\end{minipage}
+\hfill
+\begin{minipage}{.35\textwidth}
+\centering
+\includegraphics[width=.95\textwidth]{image0202}
+\end{minipage}
+
 
 \subsection{Optimal control method families}
 There are many different approaches to solve a control problem. Some of them works in Continous Time, other in Discrete time, some of them are global and other are local.\newline
@@ -131,7 +141,11 @@ There are many different approaches to solve a control problem. Some of them wor
 Dynamics Programming is based on the \side{principle of optimality}, aka the \side{Bellman principle}.
 
 Let us suppose we have an optimal trajectory to go from one point to another. 
-\missingfigure{48.26}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.6\textwidth]{image0203}
+\caption{Bellman optimality principle visual proof: if the continuous line is an optimal trajectory than the dotted subtrajectory is also optimal}
+\end{figure}
 
 What the principle of optimality says is that if you have an optimal trajectory then each subarc is in itself an optimal arc.
 
@@ -284,8 +298,10 @@ Tons of theory/methods to choose trajectory parametrization and time grid so tha
 
 \subsection{Single Shooting - Sequential Approach}
 In single shooting you discretize the control $u(t)$ on a fixed grid $0 = t_0 < t_1 < ... < t_N = t_f$
-
-\missingfigure{35:35}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.6\textwidth]{image0204}
+\end{figure}
 
 A very classical option for the discretization of the control is to do a piece-wise constant trajectory. So the control can only change at certain time and it remains constant.
 \[u(t) = y_i \qquad\forall t\in[t_i, t_{i+1}]\]
@@ -522,7 +538,11 @@ subject to:
 \item $g(s_i, y_i) \le 0$
 \end{itemize}
 
-\missingfigure{1:36:57}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.6\textwidth]{image0205}
+\caption{Multiple shooting sketch}
+\end{figure}
 
 During the optimization problem the solver is allowed to have partial solution that have discontinuities and then the gaps will be collapsed to zero little by little. At the end of the solution problem we will obtain a continuous state trajectory.
 
@@ -598,8 +618,8 @@ Also the dynamics can be written in linear form:
 x_1 &= A\,x_0\,+\,B\,u_0\\
 x_2 &= A\,x_1\,+\,B\,u_1\\
 &\text{substituting the first expression into the second}\\
-&= A^2\,x_0\,+\,AB\,u_0 + B\,u 
-x_3 &= A^3\,x_0 + A^2Bu_0 + ABu_1 + B\,u_2\\
+&= A^2\,x_0\,+\,AB\,u_0 + B\,u \\
+x_3 &= A^3\,x_0 + A^2Bu_0 + ABu_1 + B\,u_2
 \end{align*}
 Iterating through each state we can represent the linear dynamics system in the matrix form:
 \[
@@ -741,11 +761,6 @@ Summary of the DP approach to solve the LQR problem:
 You may notice that for this specific problem we actually not only recover the trajectory of optimal control inputs but we also have an optimal control policy given that $u_t$ is a linear function of the state. This gives us something more than an open-loop trajectory in contrast with the Direct methods (especially in Single Shooting).
 
 The obtained \side{optimal linear feedback policy} can be used online on the real system: we can compute $u$ based on the current state, which might be different from what we would expect from the nominal plant (more useful in the presence of perturbations).
-
-
-
-\missingfigure{Add Appendix with example of LQR 37:00}
-
 
 \subsection{Steady State Regulator}
 Usually $P_t$ converges as $t$ decreases below $N$.
@@ -1034,8 +1049,11 @@ By solving the optimal control problem at each iteration you are always behaving
 The main problem of MPC comes from the difference between the trajectory that you predict whe you solve the OCP and the trajectory that you actually going to follow with your real system (this point does not take into account the presence of disturbances). Even if you do not have any disturbance, the trajecory that you are going to predict with the optimal control problem and the one that you are going to get with the MPC are going to be different.
 
 The reason is because we are re-optimizing the trajectory at each step with an unseen point w.r.t. the previous optimization.
-
-\missingfigure{20:00}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.6\textwidth]{image0206}
+\caption{First two iteration of a generic MPC: the real trajectory differs from the computed ones due to the fact that the algorithm re-optimize the trajectory on a different set of states}
+\end{figure}
 
 In other terms
 \begin{itemize}
@@ -1132,7 +1150,10 @@ A set $S$ is control invariant if $\forall x \in S, \exists u\in \mathfrak{U}$ s
 If $\mathfrak{X}_f$ is control invariant then MPC will be recursively feasible.
 \end{theorem}
 Visual proof:
-\missingfigure{1:01:05}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.6\textwidth]{image0207}
+\end{figure}
 
 Example:
 For a manipulator, set of zero velocity is control invariant (with zero velocity the manipulator remains in the same position with zero velocity i.e. you remain in the same state) if 
@@ -1206,15 +1227,20 @@ Proof plan:
 By definition, if $x_N  \in \mathfrak{X}_N$ then $x_i\in\mathfrak{X}_i\qquad\forall i \in[0,N-1]$
 \item If $X_f = \mathfrak{X}_N$ is control invariant, then $\mathfrak{X}_i$ is control invariant $\forall i$.
 
-Assume $\mathfrak{X}_{i+1}$ is control invariant. This is true if and only if $\forall x \in \mathfrak{X}_{i+1}$, which implies that $\exists u \text{s.t. } f(x,u)\in \mathfrak{X}_{i+1}$.
+Assume $\mathfrak{X}_{i+1}$ is control invariant. This is true if and only if $\forall x \in \mathfrak{X}_{i+1}$, which implies that $\exists u \text{ s.t. } f(x,u)\in \mathfrak{X}_{i+1}$.
 
+\begin{minipage}{.625\textwidth}
 So from $\mathfrak{X}_{i+1}$ you can stay in $\mathfrak{X}_{i+1}$.
 
 We know that $\mathfrak{X}_i$ contains all states from which you can reach $\mathfrak{X}_{i+1}$ so we infer:
 \[\mathfrak{X_{i+1}}\subseteq \mathfrak{X}_i\]
-\missingfigure{13/26 MPC}
-
 Since from $\mathfrak{X}_i$ you can reach $\mathfrak{X}_{i+1}$, which is contained in $\mathfrak{X}_i$, we infer that from $\mathfrak{X}_i$ you can stay in $\mathfrak{X}_i$ which implies that $\mathfrak{X}_i$ is control  invariant.
+\end{minipage}
+\hfill
+\begin{minipage}{.35\textwidth}
+\centering
+\includegraphics[width=.95\textwidth]{image0208}
+\end{minipage}
 
 By induction, starting from $\mathfrak{X}_N$ we can show that $\mathfrak{X}_i$ is control invariant $\forall i <N$.
 \item We can show that 
@@ -1227,7 +1253,10 @@ Since the next state $x_1\in\mathfrak{X}_1$  then it is true that $x_1\in\mathfr
 We can utilize Lyapunov Stability theorems to verify stability conditions of the MPC. Under this conditions, the key idea is to use the \side{Value function} (aka Optimal cost-to-go) as the \side{exponential Lyapunov function}.
 
 The reason why it makes sense to use the Value function as a Lyapunov function is displayed in the following figure:
-\missingfigure{16:13}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\textwidth]{image0209}
+\end{figure}
 Along the time horizon over which we are optimizing and associated to each time step we have a cost which depends on the state and control at that time step.
 
 So when we are at $t=0$ the horizon that we see, goes until time step $N$, whereas at $t=1$ the horizon that we see goes until time step $N+1$.
