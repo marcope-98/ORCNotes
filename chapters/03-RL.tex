@@ -72,10 +72,194 @@ A \side{Markov Process} is defined by a tuple $<\mathfrak{X}, \mathfrak{P}>$, wh
 A Markov Process is also known as a \side{Markov Chain}
 \missingfigure{33:16}
 
-In particular the state transition probability matrix has the following property:
-\begin{enumerate}
-\item Since $\mathfrak{P}$ has all nonegative entries, and it is also \side{irreducible} (associated to a \side{strongly connected graph}), by using \side{Perron-Frobenius theorem} we know that:
+In particular, since $\mathfrak{P}$ has all nonegative entries, and it is also \side{irreducible} (associated to a \side{strongly connected graph}), by using \side{Perron-Frobenius theorem} we know that:
 \begin{itemize}
 \item The largest (in nom) eigenvalue $r$ of $\mathfrak{P}$ satisfies the following inequalities:
+\[\min_i \sum_j \mathfrak{P}_{ij}\le r\le\max_i \sum_{j}\mathfrak{P}_{ij}\quad\Rightarrow\quad r = 1\]
+which means that the highest eigenvalue of the matrix is $1$
+\item All eigenvalues of $\mathfrak{P}$ are smaller than $1$.
+\[\lambda_i(\mathfrak{P})\le 1 \qquad \forall i\]
 \end{itemize}
-\end{enumerate}
+
+We now have all the tools to try to connect what we have just seen for Markov processes to what we have seen so far for dynamical systems:
+\begin{itemize}
+\item In Optimal control, since we mostly dealt with \side{deterministic systems}, the dynamic was encoded as:
+\[x^+ = f(x)\]
+In which, we represented the next state as a function of the state (and  additionally the control inputs).
+
+\item In Markov processes, we can represent the state evolution (aka dynamics) using \side{probability density functions}:
+\[\mathbb{P}(x^+|x)\]
+\end{itemize}
+We therefore can conclude that: 
+
+If a system is deterministic, both approaches can be used (however we will try to use the first approach whenever possible).
+
+\subsubsection{Markov reward process}
+A \side{Markov Reward Process} is completely defined by a tuple $<\mathfrak{X}, \mathfrak{P}, C, \gamma$, where:
+\begin{itemize}
+\item $\mathfrak{X}$ is the state space
+\item $\mathfrak{P}$ is the probability transition matrix
+\item $C$ is the reward (aka cost function)
+\[C_x = \mathbb{E}[l_{t+1}|x_t = x]\]
+We consider the expected value because we assume that the system is stochastic.
+\item $\gamma$ is the \side{discount factor}
+\[\gamma \in [0,1]\]
+which discounts the cost into the future
+\end{itemize}
+If we consider the example of Markov Process described before
+\missingfigure{52:50}
+We can translate it into a Markov Reward Process, by simply adding a cost associated with each state. In this situation the lower the cost, the better, since the agent is rewarded for studying and punish for doing breaks and going home.
+
+Regarding the discount factor, the parameter enters into the computation of the cost-to-go (or return), which is nothing more than the total discounted cost from time $t$ to $\infty$:
+\[J_t = l_t + \gamma l_{t+1} + \gamma^2 l_{t+2} + ... = \sum_{k=0}^{\infty} \gamma^{k}l_{k+t}\]
+Following the above definition, we can infer that $\gamma$ represents the preference for \side{later costs} over \side{immediate costs} (how much you value the future over the present):
+\begin{itemize}
+\item a value of $\gamma$ close to 0, we obtain a \side{myopic evaluation} (the future has small impact on the decision)
+\item a value of $\gamma$ close to 1, we obtain a \side{far-sight evaluation} ($\sim$ optimal control)
+\end{itemize}
+
+\begin{center}
+\textbf{But why do we need to consider the discount factor?}
+\end{center}
+\begin{itemize}
+\item In order to avoid an infinite cost, since an infinite cost cannot be minimized.
+\item There is only a certain degree of uncertainty about the future prediction (reason to favour immediate reward instead of delayed reward).
+\item If the cost is associated with some \side{monetary budget}, interest rate and inflation can be modeled using the discount factor. 
+\end{itemize}
+
+\subsection{Bellman equation in the context of RF}
+Let us define the cost starting from state $x$, as:
+\[V(x) = J_t(x_t=x)\]
+The \side{Bellman Equation} can be obtained by decomposition of the cost in two parts (assumption: no control input):
+\[V(x)=l(x) + \gamma V(f(x))\]
+Which can also be represented in matrix form, since RL considers a finite amount of states and control inputs and therefore the Value function and other quantities can be stored in a vector/matrix:
+\begin{align*}
+\begin{bNiceMatrix}
+V(1)\\
+\Vdots\\
+V(n)
+\end{bNiceMatrix}&=
+\begin{bNiceMatrix}
+l(1)\\
+\Vdots\\
+l(n)
+\end{bNiceMatrix}
++\gamma
+\begin{bNiceMatrix}
+\mathfrak{P}_{11}&\Cdots& \mathfrak{P}_{1n}\\
+\Vdots&\Ddots&\Vdots\\
+\mathfrak{P}_{n1}& \Cdots&\mathfrak{P}_{nn}
+\end{bNiceMatrix}
+\begin{bNiceMatrix}
+V(1)\\
+\Vdots\\
+V(n)
+\end{bNiceMatrix}\\
+&\\
+V&=C + \gamma\mathfrak{P}V
+\end{align*}
+The reason why the matrix form and the analytical form of Bellman's equation are equal is because the system is assumed to be deterministic: this means that each row of the transition probability matrix $\mathfrak{P}$ will be zero except for the element (which is 1) associated with the next state.
+
+In this way the matrix product between the transition probability matrix with the Value function vector will yield the Value function at the next state, i.e. 
+\[V(f(x)) = \mathfrak{P}V\]
+However, if the system is considered stochastic the matrix formulation still holds whereas the analitical formulation does not make sense since $f(x)$ becomes a probability distribution and therefore cannot be utilized to evaluate the value function.
+
+Moreover, the matrix form is simply a linear system of equation in $V$ and therefore we can ensure that we can explicitly compute it:
+\[V=(I-\gamma \mathfrak{P})^{-1}C\]
+However the Direct solution is only possible for small MRPs. Otherwise, in the case of a large Markov Reward Process with many possible states, then iterative methods can be utilized.
+
+\subsection{Markov Decision Process MDP}
+A \side{Markov Decision Process MDP} is uniquely defined by a tuple $<\mathfrak{X}, \mathfrak{U}, \mathfrak{P},C, \gamma>$
+where:
+\begin{itemize}
+\item $\mathfrak{X}$ is the state space
+\item $\mathfrak{U}$ is the control space: (finite) set of control inputs
+\item $\mathfrak{P}$ is the transition probability matrix
+\[\mathfrak{P}_{xx'}^u = \mathbb{P}(x_{t+1}=x'|x_T=x, u_t = u)\]
+\item $C$ is the cost
+\[C_x^u = l_t(x_t=x, u_t=u)\]
+\item $\gamma$ is the discount factor
+\end{itemize}
+ Now that we have introduced the control inputs in the formulation of the system, we can define the notion of \side{policy}: distribution of the control inputs over the states (i.e. a stochastic function).
+ 
+ Given a certain state, you obtain a distribution over all possible control inputs to apply.
+ \[\pi(u|x) = \mathbb{P}(u_t=u|x_t=x)\]
+ From now on we will assume \side{deterministic policies},i.e.:
+ \[u = \pi(x)\]
+
+\subsection{Action-Value Function (Q function)}
+The \side{Action-Value Function} is something very similar to the Value function. The Value function is a function of the state and yields the return (cost-to-go) that you will encounter starting from that state and follow a certain policy $\pi$.
+
+Whereas the Action-Value function is an extension of the Value function that takes as input the state and the control input, and yields the cost that you will encounter starting from a state $x$ applying the control $u$ and, from that point onward, following the policy $\pi$.
+\[Q^{\pi}(x,u) = J_t(x_t=x, u_t=u, u_{k>t}\sim \pi)\]
+We can further decompose the Q-function into two separate terms:
+\begin{align*}
+Q^{\pi}(x,u) &= l(x,u) + \gamma Q^{\pi}(f(x,u), \pi(f(x,u)))\\
+&= l(x,u) + \gamma V^{\pi}(f(x,u))
+\end{align*}
+where
+\[V^{\pi}(x) = Q^{pi}(x,\pi(x))\]
+
+\subsection{Optimal Value Function and Optimal Action-Value Function}
+The \side{Optimal Value Function} is the minimum Value function over all possible policies
+\[V^*(x) = \min_{\pi}V^{\pi}(x)\]
+SImilarly we can define the \side{Optimal Action-Value Function}:
+\[Q^*(x,u) = \min_{\pi}Q^{\pi}(x,u)\]
+And as a result the \side{Optimal policy} is defined as:
+\[\pi^* \le \pi \qquad \forall \pi\]
+where
+\[\pi\le\pi'\qquad\text{if } V^{\pi}(x) \le V^{\pi'}(x)\quad \forall x \in \mathfrak{X}\]
+
+One possible way of computing the optimal policy, which is often used in reinforcement learning, is to first:
+\begin{itemize}
+\item Minimize the Action-Value Function $Q^*$ over u:
+\begin{align*}
+\pi^*(x) &= \argmin_{z\in\mathfrak{U}}Q^*(x,z)\\
+&= \argmin_{z\in\mathfrak{U}} l(x,u) + \gamma V^*(f(x,u))
+\end{align*}
+But by assumption we do not know the dynamics $f(x,u)$, that is why we utilize the Q function.
+\end{itemize}
+
+Therefore, if we know $Q^*(x,u)$, then we immediatly have the optimal policy.
+
+\subsection{Bellman Optimality equation}
+The \side{Bellman Optimality equation} is the optimal version of the Bellman equation:
+\begin{align*}
+V^*(x) &= \min_u Q^*(x,u)\\
+&= \min_u l(x,u) + \gamma V^*(f(x,u))
+\end{align*}
+
+which implies that:
+\begin{align*}
+Q^*(x,u)&=l(x,u) + \gamma V^*(f(x,u))\\
+&= l(x,u) + \gamma \min_{u'} Q^*(f(x,u),u')
+\end{align*}
+We obtained
+\begin{itemize}
+\item A nonlinear systems (because a minimization is non linear)
+\item No closed-form solution
+\item Iterative algorithm are utilized to find the solution
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
