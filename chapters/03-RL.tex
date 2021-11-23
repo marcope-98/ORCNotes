@@ -52,33 +52,33 @@ Or in other terms: the future is independent on the past given the present.
 It can be immediately seen that the system is considered stochastic.
 
 The motion of the state is defined by the \side{State transition probability} which the probability of going from one state $x$ to another state $x'$
-\[\mathfrak{P}_{xx'} = \mathbb{P}(x_{t+1} = x' | x_t=x)\]
+\[\mathcal{P}_{xx'} = \mathbb{P}(x_{t+1} = x' | x_t=x)\]
 Since in classical Reinforcement Learning you assume that the size of the state space is finite, then you can collect together all the state transition probabilities in a big matrix, called \side{State Transition matrix}.
-\[\mathfrak{P}=
+\[\mathcal{P}=
 \begin{bNiceArray}{ccc}
-\mathfrak{P}_{11}&\Cdots&\mathfrak{P}_{1n}\\
+\mathcal{P}_{11}&\Cdots&\mathcal{P}_{1n}\\
 \Vdots &\Ddots&\Vdots\\
-\mathfrak{P}_{n1}&\Cdots&\mathfrak{P}_{nn}
+\mathcal{P}_{n1}&\Cdots&\mathcal{P}_{nn}
 \end{bNiceArray}\]
-The sum of each row of the matrix will be 1. In deterministic systems $\mathfrak{P}$ contains only 0 and 1.
+The sum of each row of the matrix will be 1. In deterministic systems $\mathcal{P}$ contains only 0 and 1.
 
 \subsection{Markov Process or Markov Chain}
 
-A \side{Markov Process} is defined by a tuple $<\mathfrak{X}, \mathfrak{P}>$, where:
+A \side{Markov Process} is defined by a tuple $<\mathcal{X}, \mathcal{P}>$, where:
 \begin{itemize}
-\item $\mathfrak{X}$ is a finite set of states
-\item $\mathfrak{P}$ is the \side{state transition probability matrix}
+\item $\mathcal{X}$ is a finite set of states
+\item $\mathcal{P}$ is the \side{state transition probability matrix}
 \end{itemize}
 A Markov Process is also known as a \side{Markov Chain}
 \missingfigure{33:16}
 
-In particular, since $\mathfrak{P}$ has all nonegative entries, and it is also \side{irreducible} (associated to a \side{strongly connected graph}), by using \side{Perron-Frobenius theorem} we know that:
+In particular, since $\mathcal{P}$ has all nonegative entries, and it is also \side{irreducible} (associated to a \side{strongly connected graph}), by using \side{Perron-Frobenius theorem} we know that:
 \begin{itemize}
-\item The largest (in nom) eigenvalue $r$ of $\mathfrak{P}$ satisfies the following inequalities:
-\[\min_i \sum_j \mathfrak{P}_{ij}\le r\le\max_i \sum_{j}\mathfrak{P}_{ij}\quad\Rightarrow\quad r = 1\]
+\item The largest (in nom) eigenvalue $r$ of $\mathcal{P}$ satisfies the following inequalities:
+\[\min_i \sum_j \mathcal{P}_{ij}\le r\le\max_i \sum_{j}\mathcal{P}_{ij}\quad\Rightarrow\quad r = 1\]
 which means that the highest eigenvalue of the matrix is $1$
-\item All eigenvalues of $\mathfrak{P}$ are smaller than $1$.
-\[\lambda_i(\mathfrak{P})\le 1 \qquad \forall i\]
+\item All eigenvalues of $\mathcal{P}$ are smaller than $1$.
+\[\lambda_i(\mathcal{P})\le 1 \qquad \forall i\]
 \end{itemize}
 
 We now have all the tools to try to connect what we have just seen for Markov processes to what we have seen so far for dynamical systems:
@@ -95,10 +95,10 @@ We therefore can conclude that:
 If a system is deterministic, both approaches can be used (however we will try to use the first approach whenever possible).
 
 \subsubsection{Markov reward process}
-A \side{Markov Reward Process} is completely defined by a tuple $<\mathfrak{X}, \mathfrak{P}, C, \gamma$, where:
+A \side{Markov Reward Process} is completely defined by a tuple $<\mathcal{X}, \mathcal{P}, C, \gamma$, where:
 \begin{itemize}
-\item $\mathfrak{X}$ is the state space
-\item $\mathfrak{P}$ is the probability transition matrix
+\item $\mathcal{X}$ is the state space
+\item $\mathcal{P}$ is the probability transition matrix
 \item $C$ is the reward (aka cost function)
 \[C_x = \mathbb{E}[l_{t+1}|x_t = x]\]
 We consider the expected value because we assume that the system is stochastic.
@@ -146,9 +146,9 @@ l(n)
 \end{bNiceMatrix}
 +\gamma
 \begin{bNiceMatrix}
-\mathfrak{P}_{11}&\Cdots& \mathfrak{P}_{1n}\\
+\mathcal{P}_{11}&\Cdots& \mathcal{P}_{1n}\\
 \Vdots&\Ddots&\Vdots\\
-\mathfrak{P}_{n1}& \Cdots&\mathfrak{P}_{nn}
+\mathcal{P}_{n1}& \Cdots&\mathcal{P}_{nn}
 \end{bNiceMatrix}
 \begin{bNiceMatrix}
 V(1)\\
@@ -156,26 +156,26 @@ V(1)\\
 V(n)
 \end{bNiceMatrix}\\
 &\\
-V&=C + \gamma\mathfrak{P}V
+V&=C + \gamma\mathcal{P}V
 \end{align*}
-The reason why the matrix form and the analytical form of Bellman's equation are equal is because the system is assumed to be deterministic: this means that each row of the transition probability matrix $\mathfrak{P}$ will be zero except for the element (which is 1) associated with the next state.
+The reason why the matrix form and the analytical form of Bellman's equation are equal is because the system is assumed to be deterministic: this means that each row of the transition probability matrix $\mathcal{P}$ will be zero except for the element (which is 1) associated with the next state.
 
 In this way the matrix product between the transition probability matrix with the Value function vector will yield the Value function at the next state, i.e. 
-\[V(f(x)) = \mathfrak{P}V\]
+\[V(f(x)) = \mathcal{P}V\]
 However, if the system is considered stochastic the matrix formulation still holds whereas the analitical formulation does not make sense since $f(x)$ becomes a probability distribution and therefore cannot be utilized to evaluate the value function.
 
 Moreover, the matrix form is simply a linear system of equation in $V$ and therefore we can ensure that we can explicitly compute it:
-\[V=(I-\gamma \mathfrak{P})^{-1}C\]
+\[V=(I-\gamma \mathcal{P})^{-1}C\]
 However the Direct solution is only possible for small MRPs. Otherwise, in the case of a large Markov Reward Process with many possible states, then iterative methods can be utilized.
 
 \subsection{Markov Decision Process MDP}
-A \side{Markov Decision Process MDP} is uniquely defined by a tuple $<\mathfrak{X}, \mathfrak{U}, \mathfrak{P},C, \gamma>$
+A \side{Markov Decision Process MDP} is uniquely defined by a tuple $<\mathcal{X}, \mathcal{U}, \mathcal{P},C, \gamma>$
 where:
 \begin{itemize}
-\item $\mathfrak{X}$ is the state space
-\item $\mathfrak{U}$ is the control space: (finite) set of control inputs
-\item $\mathfrak{P}$ is the transition probability matrix
-\[\mathfrak{P}_{xx'}^u = \mathbb{P}(x_{t+1}=x'|x_T=x, u_t = u)\]
+\item $\mathcal{X}$ is the state space
+\item $\mathcal{U}$ is the control space: (finite) set of control inputs
+\item $\mathcal{P}$ is the transition probability matrix
+\[\mathcal{P}_{xx'}^u = \mathbb{P}(x_{t+1}=x'|x_T=x, u_t = u)\]
 \item $C$ is the cost
 \[C_x^u = l_t(x_t=x, u_t=u)\]
 \item $\gamma$ is the discount factor
@@ -208,14 +208,14 @@ SImilarly we can define the \side{Optimal Action-Value Function}:
 And as a result the \side{Optimal policy} is defined as:
 \[\pi^* \le \pi \qquad \forall \pi\]
 where
-\[\pi\le\pi'\qquad\text{if } V^{\pi}(x) \le V^{\pi'}(x)\quad \forall x \in \mathfrak{X}\]
+\[\pi\le\pi'\qquad\text{if } V^{\pi}(x) \le V^{\pi'}(x)\quad \forall x \in \mathcal{X}\]
 
 One possible way of computing the optimal policy, which is often used in reinforcement learning, is to first:
 \begin{itemize}
 \item Minimize the Action-Value Function $Q^*$ over u:
 \begin{align*}
-\pi^*(x) &= \argmin_{z\in\mathfrak{U}}Q^*(x,z)\\
-&= \argmin_{z\in\mathfrak{U}} l(x,u) + \gamma V^*(f(x,u))
+\pi^*(x) &= \argmin_{z\in\mathcal{U}}Q^*(x,z)\\
+&= \argmin_{z\in\mathcal{U}} l(x,u) + \gamma V^*(f(x,u))
 \end{align*}
 But by assumption we do not know the dynamics $f(x,u)$, that is why we utilize the Q function.
 \end{itemize}
@@ -234,18 +234,130 @@ which implies that:
 Q^*(x,u)&=l(x,u) + \gamma V^*(f(x,u))\\
 &= l(x,u) + \gamma \min_{u'} Q^*(f(x,u),u')
 \end{align*}
-We obtained
+We obtained:
 \begin{itemize}
 \item A nonlinear systems (because a minimization is non linear)
 \item No closed-form solution
 \item Iterative algorithm are utilized to find the solution
 \end{itemize}
 
+\section{Dynamic Programming}
+Before diving deep into Reinforcement Learning algorithms we need to understand the algorithmic foundation of RL, which is \side{Dynamic Programming}.
 
+We have already discussed Dynamic Programming in the context of Optimal Control, but as we will see in this section RL rely much more on Dynamic Programming than Optimal control.
 
+However, note that Dynamic Programming is not yet RL since, in DP, you assume that you have full knowledge of the model (in our case of the MDP).
 
+In the context of Dynamic Programming there are two classes of problems that we can deal with:
+\begin{enumerate}
+\item \side{Prediction}
 
+In a prediction problem you already have a MDP and a policy (function that tells you the control input to apply in each state), and you want to evaluate how good that policy is (i.e. the value function associated with that policy).
 
+Formally:
+\begin{itemize}
+\item Input: MDP $<\mathcal{X},\mathcal{U}, \mathcal{P},C, \gamma>$ and policy $\pi$
+\item Output: Value function $V^{\pi}$ (not the optimal one)
+\end{itemize}
+\item \side{Control}
+
+In a control problem you already have a MDP and you want to find the \side{optimal control policy} (and tipically the \side{optimal value function} associated to it).
+
+Formally:
+\begin{itemize}
+\item Input: MDP
+\item Output: optimal value function $V^*$ and optimal policy $\pi^*$
+\end{itemize}
+\end{enumerate}
+
+\subsubsection{Difference between Finite and Infinite Horizon}
+What we have discussed when talking about DP is the case of \side{Finite Horizon}, so we assumed an horizon over which we want to optimize was finite. What we are gonna see  instead is the application of DP with \side{Infinite Horizon}.
+
+The main reason of this change in approach is due to the fact that in Optimal control you usually deal with a Finite Horizon problem, whereas in RL most of the literature deals with Infinite Horizon problems; as a consequence, we need to base our algorithms on different versions of DP (we will see that this changes the way the algorithm behaves).
+
+\begin{itemize}
+\item Finite horizon
+\begin{itemize}
+\item Theory is simpler (you start fro the last time step and you already now the Value function associated with it)
+\item mostly used in Optimal Control
+\item the policy and Value function depends on time, because depending on how much time you have left, the optimal thing to do might be different.
+\missingfigure{9:45}
+\end{itemize}
+\item Infinite horizon
+\begin{itemize}
+\item theory is more complex, but it is elegant (even though the theory is complex, this kind of complexity in the end disappears resulting in a beautiful and simple algorithm, sometimes simpler than the version with finite horizon)
+\item mostly used in RL
+\item the policy and Value function are stationary (independent of time)
+\item good approximation of long finite horizon problems
+\end{itemize}
+\end{itemize}
+
+\subsubsection{Bellman operators}
+Before diving deep into the DP algorithms with infinite horizon we need to introduce the notion that we will use in defining them:
+\begin{itemize}
+\item \side{Bellman (expectation backup) operator} $T^{\pi}$.
+\[T^{\pi}(V) = C^{\pi} + \gamma\mathcal{P}^{\pi}V\]
+The input is the Value function (or vector of Value functions) and the output is another Value function.
+\item \side{Bellman optimality (backup) operator} $T$.
+\[T(V) = \min_{u\in\mathcal{U}} C^u + \gamma\mathcal{P}^uV\]
+In this case you do not have a policy to follow but you minimize over all possible control inputs (for each possible state):
+\[(TV)(x) = \min_{u\in\mathcal{U}} l(x,u) + \gammaV(f(x,u))\qqaud\forall x \in \mathcal{X}\]
+\end{itemize}
+
+The expression are basically the Bellman optimality principle equation:
+\[V_k(x) = \min_{u} l(x,u) + V_{k+1}(f(x,u))\]
+
+\subsection{Prediction}
+\subsubsection{Iterative Policy Evaluation}
+The \side{Iterative Policy Evaluation} algorithm can be defined as follow:
+\begin{itemize}
+\item Problem: Given a MDP and a given policy $\pi$. Evaluate the given policy.
+\item Solution: Apply iteratively Bellman expectation operator:
+\[V_{k+1} = l(x,\pi(x)) + \gamma V_{k}(f(x,\pi(x)))\qquad \forall x \in \mathcal{X}\]
+This means that we compute a sequence of approximation of the Value function, where each approximation is computed from the previous approximation.
+
+The recursive application of the Bellman operator can be represented in a shorter notation:
+\[V_{k+1} = T^{\pi}V_k\]
+
+In this case $k$ refers to the iteration of the algorithm not the time step since it does not depend on time
+\end{itemize}
+
+The algorithm goes as follow:
+\begin{enumerate}
+\item Start with an arbitrary Value function $V_0$
+\item Iterate using
+\[V_{k+1} = T^{\pi}V_k\]
+\item Guarantee to converge to $V_{\pi}$, since
+\[\lim_{k\to\infty} V_k = V_{\pi}\]
+In practice you will converge before infinity.
+\end{enumerate}
+
+\begin{proof}
+Starting from:
+\[V_{k+1} = T^{\pi}V_k\]
+\begin{enumerate}
+\item We first need to prove that $T^\pi$ is \side{contracting},  i.e. the distance (measured using the $L_{\infty}$ norm) between two value functions $V$ and $Z$ decreases if you apply the Bellman operator.
+\begin{align*}
+\norma{T^{\pi}V - T^{\pi}Z}_{\infty} &= \norma{\cancel{C^{\pi}}+\gamma \mathcal{P}^{\pi}V - \cancel{C^{\pi}} - \gamma \mathcal{P}^{\pi}Z}_{\infty}\\
+&= \gamma \norma{\mathcal{P}^{\pi}(V-Z)}_{\infty}\\
+&\le \gamma \norma{V-Z}_{\infty}
+\end{align*}
+Because each row of $\mathcal{P}^{\pi}$ sums to 1.
+
+In the specific case of a deterministic problem, by applying the transition probability matrix only changes the order of the difference of Value functions not the norm.
+
+\item Secondly we would like to prove that given an arbitrary Value functin $V_0$ and the value associated with the policy $V_{\pi}$, $V_{k}\to V_{\pi}$ as $k\to\infty$
+\begin{align*}
+\norma{V_k - V_{\pi}}_{\infty} &= \norma{T^{\pi}V_{k-1} - T^{\pi}V_{\pi}}_{\infty} \\
+&\le\gamma\norma{V_{k-1} - V_{\pi}}_{\infty} \\
+&\le \gamma^2 \norma{V_{k-2} - V_{\pi}}_{\inty}\\
+&\le ...\\
+&\le \gamma^n \norma{V_{0}-V_{\pi}}_{\infty}
+\end{align*}
+Which states that $V_{k}$ converges to $V_{\pi}$ at \side{geometric rate}.
+\end{enumerate}
+\missingfigure{25:43}
+\end{proof}
 
 
 
