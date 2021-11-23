@@ -301,7 +301,7 @@ The input is the Value function (or vector of Value functions) and the output is
 \item \side{Bellman optimality (backup) operator} $T$.
 \[T(V) = \min_{u\in\mathcal{U}} C^u + \gamma\mathcal{P}^uV\]
 In this case you do not have a policy to follow but you minimize over all possible control inputs (for each possible state):
-\[(TV)(x) = \min_{u\in\mathcal{U}} l(x,u) + \gammaV(f(x,u))\qqaud\forall x \in \mathcal{X}\]
+\[(TV)(x) = \min_{u\in\mathcal{U}} l(x,u) + \gamma V(f(x,u))\qquad\forall x \in \mathcal{X}\]
 \end{itemize}
 
 The expression are basically the Bellman optimality principle equation:
@@ -350,17 +350,108 @@ In the specific case of a deterministic problem, by applying the transition prob
 \begin{align*}
 \norma{V_k - V_{\pi}}_{\infty} &= \norma{T^{\pi}V_{k-1} - T^{\pi}V_{\pi}}_{\infty} \\
 &\le\gamma\norma{V_{k-1} - V_{\pi}}_{\infty} \\
-&\le \gamma^2 \norma{V_{k-2} - V_{\pi}}_{\inty}\\
+&\le \gamma^2 \norma{V_{k-2} - V_{\pi}}_{\infty}\\
 &\le ...\\
-&\le \gamma^n \norma{V_{0}-V_{\pi}}_{\infty}
+&\le \gamma^k \norma{V_{0}-V_{\pi}}_{\infty}
 \end{align*}
-Which states that $V_{k}$ converges to $V_{\pi}$ at \side{geometric rate}.
+Which states that $V_{k}$ converges to $V_{\pi}$ at \side{geometric rate}, and the geometric rate is defined by the discount factor $\gamma \in [0,1]$
+
+Note that $V_{\pi}$ is invariant, therefore 
+\[V_{\pi} = T^{\pi}V_{\pi}\]
+\item Prove $V_{\pi}$ is unique fixed point of $T^{\pi}$.
+
+Assume $V$ and $Z$ are both fixed points of $T^{\pi}$, i.e.
+\[T^{\pi}V = V\qquad T^{\pi}Z = Z\]
+By doing so we are going to prove that the only way that could be two of them is if they are equal $V=Z$
+\begin{align*}
+\norma{T^{\pi}V - T^{\pi}Z}_{\infty} &\le \gamma \norma{V-Z}_{\infty}&\text{Because }T^{\pi}\text{ is contracting}\\
+\norma{T^{\pi}V - T^{\pi}Z}_{\infty} &= \norma{V - Z}_{\infty} &\text{Because }V,Z \text{ are fixed points}\\
+\gamma\norma{V-Z}_{\infty} &\ge \norma{V-Z}_{\infty} \quad\Rightarrow\quad \norma{V-Z}_{\infty} &\text{Because } \gamma <1
+\end{align*}
+Therefore the only way the inequality holds is if and only if $V=Z$, which means that the only way these two points are both fixed is if they are the same point.
 \end{enumerate}
-\missingfigure{25:43}
 \end{proof}
 
+\subsection{Control}
+\subsubsection{Policy Iteration}
+The \side{Policy Iteration} algorithm can be defined as follow:
+\begin{itemize}
+\item Problem: Given an MDP, find the optimal policy $\pi^*$
+\end{itemize}
 
+The algorithm goes as follow:
+\begin{enumerate}
+\item Start with an arbitrary policy $\pi_0$
+\item Iterate for $k = 0...\infty$ 
+\begin{itemize}
+\item Evaluate the policy $\pi_k \Rightarrow V^{\pi_k}$ (bottleneck)
+\item Improve the policy acting greedily w.r.t. $V^{\pi_k}$:
+\[\pi_{k+1}(x) = \argmin_{u} l(x,u) + \gamma V^{\pi_k}(f(x,u))\qquad \forall x \in \mathcal{X}\]
+The minimization is computed by evaluating the argument for all possible $u$, you store the results in a vector and then you compute the minimum of the vector (\side{minimization by enumeration}). 
+\end{itemize}
+\end{enumerate}
 
+This algorithm always converges to the optimal policy $\pi^*$
+\[\lim_{k\to \infty} \pi_k = \pi^*\]
+We can show that this convergence works:
+\begin{proof}
+The way you show that policy iteration converges to the optimal policy is by showing that at each iteration of the algorithm, you obtain a policy that is better than the previous one, i.e,:
+\[\pi_{k+1}\le\pi_k\quad \forall k \qquad \iff \qquad \pi' \le \pi\]
+Here the inequality applied to the policies means that the value function associated to a policy is always less than or equal to the value function associated to another policy.
+\begin{align*}
+\pi'(x) =&\argmin_u [l(x,u) + \gamma V^{\pi}(f(x,u))]\\
+& \min_u [l(x,u) + \gamma V^{\pi}(f(x,u))]\le l(x,\pi(x)) + \gamma V^{\pi}(f(x,\pi(x)))\\
+\end{align*}
+Where :
+\begin{itemize}
+\item the lhs of the inequality is the cost we get by following $\pi'$ for first step and then following $\pi$ (because we are using $V^{\pi}$ to estimate the tail of the cost)
+\item the rhs of the inequality is the cost following $\pi$ 
+\end{itemize}
+Then  I need to find a way to iterate in order to show that following $\pi'$ is better than to follow $\pi$, and the way we are going to do it is by using the Q function:
+\[Q^{\pi}(x,\pi') = \min_{u} [Q^{\pi}(x,u)]\le Q^{\pi}(x,\pi(x)) = V^{\pi}(x)\]
+\begin{align*}
+V^{\pi}(x) &\ge \min_u [l(x,u)+\gamma V^{\pi}(f(x,u))]&V^{\pi}(x) \ge Q^{\pi}(x,\pi')\\
+&\ge l(x,\pi') + \gamma Q^{\pi}(x', \pi')&x'\triangleq f(x,\pi')\\
+&= l(x,\pi') + \gamma l(x',\pi') + \gamma^2 V^{\pi}(x'')&\text{Cost following }\pi'\text{for 2 steps and then }\pi\\
+&\ge l(x,\pi') + \gamma l(x', \pi') + \gamma^2 Q^{\pi}(x'', \pi')&\pi' \text{ for 3 steps}\\
+&\ge \sum_{i=0}^{\infty} \gamma^i l(x^{(i)}, \pi') = V^{\pi'}(x)&
+\end{align*}
+\[V^{\pi} \ge V^{\pi'} \iff \pi'\le \pi\]
+\end{proof}
+
+\subsubsection{Modified policy iteration}
+Since most of the computation time of the policy iteration algorithm is spent evaluating the policy, we can introduce a variation of the algorithm called \side{Modified policy iteration} algorithm, based on the idea that maybe we do not need to evaluate the policy exactly, but instead compute an approximation of its value function.
+\begin{itemize}
+\item Use $m_k$ policy evaluation iterations to compute $V^{\pi_k}$.
+
+Under some mild assumptions even this algorithm converges to $V^*$.
+\item Of course if we take $m_k = \infty$ we recover the policy iteration algorithm.
+\item If we take $m_k = 1$ we obtain the \side{Value Iteration} algorithm.
+
+Every time you update $V$ you use a policy that is greedy w.r.t. $V$.
+\end{itemize}
+
+\subsubsection{Value iteration}
+In the \side{Value iteration} algorithm you do not keep track of the policy but instead you store in memory the Value function.
+
+So you try to compute the optimal value function and then, only at the end, when you have obtained the optimal value function, you compute the policy.
+\begin{enumerate}
+\item Start with an arbitrary estimation of the Value function $V_0$
+\item Iterate for $k = 0,...,\infty$
+\begin{itemize}
+\item For all the states $x\in\mathcal{X}$ 
+
+You update the Value function:
+\[V_{k+1}(x) = \min_u l(x,u) + \gamma V_k(f(x,u))\]
+
+This for loop can be simply rewritten as:
+\[V_{k+1} = TV_k\]
+\end{itemize}
+\item $V_k$ is guaranteed to converge to the optimal value function $V^*$
+\[\lim_{k\to\infty} V_k = V^*\]
+\item Once you have obtained the optimal value you can compute the optimal policy $\pi^*$
+\[\pi^* = \argmin_u l + \gamma V^*\]
+\end{enumerate}
 
 
 
