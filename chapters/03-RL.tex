@@ -454,6 +454,293 @@ This for loop can be simply rewritten as:
 \end{enumerate}
 
 
+\section{Model-Free Prediction}
+In this section we dive deep into the decision process of Reinforcement Learning: in fact, so far, we assumed that the MDP is given and well defined (as well as the dynamics of the system) and we were able to exploit it in order to find the optimal policy or the value function given a fixed policy.
+
+From now on, we will start relaxing this assumption, i.e. we do not know the MDP and we can only choose the control inputs and observe state and cost.\\
+However, in this section we will focus on prediction not control, which will be our foundation for doing control in the next sections.
+
+With prediction, we mean that the policy is assumed to be given (\side{fixed policy}) and we just want to find the value function associated with that policy.\\
+This vaguely reseamble the DDP approach \side{policy evaluation}, which turned out to be the basis for doing policy iteration (first algorithm that we look at in order to find the optimal policy).
+
+Formally:
+Problem: Find the value function of unkown MDP by acting (choosing the action/control input) and observing. 
+
+In order to solve the problem there are two main approaches, which are the extreme of a more general approach.
+\begin{enumerate}
+\item \side{Monte Carlo (MC)}
+
+The key idea of this method is really simple: if I would like to estimate the value of a state
+\begin{itemize}
+\item I start from that state
+\item I run my policy
+\item Collect all the costs until the end of the episode (all the episodes must end)
+\item I sum all the costs and that is going to give me an estimate of the value of that state.
+\end{itemize}
+
+Tipically in RL we assume that the MDP and/or the policies and/or the costs are stochastic, so I would have to repeat this process several times. By taking the average over the different summations, we would obtain the mean/estimate.
+
+In summary: the value of a state can be estimate from the mean of the cost-to-go, however it can only be applied to \side{episodic MDPs} (i.e. all episodes must end).
+\item \side{Temporal Difference Learning TD0}
+\end{enumerate}
+
+
+\subsection{Monte Carlo Policy Evaluation}
+The goal of \side{Monte Carlo Policy Evaluation} is to learn the value of a given policy $V_{\pi}$ from episodes of experience under policy $\pi$.
+
+By \side{episode} we mean one execution of the policy from a \side{starting state} to a \side{terminal state}.
+
+As a consequence, each episode will be a list of state, control and cost for each step:
+\[x_1, u_1, l_1 , ... , x_k \sim \pi\]
+As mentioned before we can compute the Cost-to-go, i.e. the total discounted cost:
+\[J_t = l_t + \gamma l_{t+1} + ... + \gamma^{T-1} l_{t + T-1}\]
+and then once we have the cost-to-go for each time we can use it to estimate the value function, by means of \side{expected cost-to-go} under policy $\pi$:
+\[V^{\pi}(x) = \mathbb{E}[J_t | x_t = x]\]
+Since we are using the expected value operator we are implicitly assuming some stochasticity in MDP or in the policy or in the cost.
+
+In case of deterministic processes, you only need one sample (no need to apply the expected value operator).
+
+Summary:
+Monte Carlo policy evaluation estimates $V^{\pi}$ as the average cost-to-go.
+
+The algorithm implementation has two versions, depending on when to start accumulating the cost: if you encounter a state multiple times you are gonna get different values depending wheter you start accumulating the cost the first time you meet that state or every time you meet the state.
+\begin{itemize}
+\item \side{First-visit MC policy evaluation}
+
+The first time that a state $x$ is visited in an episode:
+\begin{enumerate}
+\item Increment a counter (how many times have you met that state)
+\[N(x) \leftarrow N(x) + 1\]
+\item Increment the total cost (in order to compute the cost-to-go)
+\[C(x)\leftarrow C(x) + J(x)\]
+\item Estimate value as the average cost-to-go
+\[V(x) \leftarrow \cfrac{C(x)}{N(x)}\]
+\end{enumerate}
+These three steps are repeated only the first time you encounter a state (no increment happens if you encouter the same state).
+
+This method works by exploiting the \side{law of large numbers}
+\[V(x)\rightarrow V^{\pi}(x)\qquad\text{as }N(x)\rightarrow\infty\]
+\item \side{Every visit MC policy evaluation} 
+
+the counter and total cost are incremented every time a state is visited.
+\end{itemize}
+
+Since computing the mean each time is annoying what is very often done is \side{Incremental MC updates}: update the mean incrementally.
+\begin{align*}
+V_N &= \cfrac{1}{N}\sum_{j=1}^N J_i&\text{decompose summation}\\
+&=  \cfrac{J_N +\sum_{j=1}^{N-1} J_j}{N}&V_{N-1} = \cfrac{1}{N-1}\sum_{j=1}^{N-1} J_j\\
+&= \cfrac{J_N + (N-1)V_{N-1}}{N}\\
+&= V_{N-1} + \cfrac{1}{N}(J_N - V_{N-1})  
+\end{align*}
+In this way we can compute the new mean starting from the previous one.
+However as $N$ becomes large the influence of the increment tends toward zero. However, this is an undesirable effects especially in non-stationary environments than new samples will have a lower effect on the estimate of the value.
+
+That is why, very often, instead of dividing for $N$ a fixed value is used (it an be useful to track a running mean, i.e. forget old episodes):
+\[V(x) \leftarrow V(x) + \alpha (J - V(x))\]
+In this view $\alpha$ is how fast we are going to update based on the most recent sample.
+
+\subsection{Temporal Difference Learning - TD0}
+\side{Temporal Difference Learning (TD0)} is an alternative method to MC, and it estimates the cost-to-go by using the \side{1-step look ahead}, i.e.:
+\[V(x_t) \leftarrow V(x_t) + \alpha_t (l_t + \gamma V(x_{t+1}) - V(x_t))\]
+where:
+\begin{itemize}
+\item{\makebox[5cm]{$l_t + \gamma V(x_{t+1}) - V(x_t)$\hfill} is the }\side{TD error}
+\item{\makebox[5cm]{$l_t + \gamma V(x_{t+1})$\hfill} is the }\side{TD target}, which is out estimated cost-to-go
+\end{itemize}
+
+It is now very useful to compare it to MC using the inremental update:
+\[V(x_t) \leftarrow V(x_t) + \alpha_t (J_t - V(x_t))\]
+where 
+\[J_t \approx l_t + \gamma V(x_{t+1})\]
+where rhs reminds us of Bellman equation.
+The key intution is instead of collecting all the costs starting from the state till the end of the episode, I only see 1 cost and in order to estimate the tail of the cost-to-go I use the estimate of the value function.
+Whereas MC target is based on what we observe from the environment.
+
+Policy evaluation is TD(0) with $\alpha_t = 1$ and sampling all states uniformly.
+
+The properties of TD(0) are:
+\begin{itemize}
+\item TD(0) is a \side{stochastic approximation algorithm}.
+\item Since Bellman operator has a unique fixed point, then if TD(0) converges (and all states are sampled infinitely often) then it must converge to $V^{\pi}$.
+\item Convergence is guaranteed if step-size sequence satisfies \side{Robbins-Monro (RM) conditions}:
+\[\sum_{t = 0}^{\infty} \alpha_t = \infty\qquad \sum_{t = 0}^{\infty}\alpha_t^2 <\infty\]
+which means that cannot tend to zero and how much you update should tend towards zero (you need to update by smaller and smaller amounts to ensure convergence), e.g.
+\[\alpha_t = \cfrac{\bar{\alpha}}{t}\]
+\item In practice, I constant $\alpha$ is sufficient in most of the time: the algorithm might converge anyway even if we do not have any guarantee of convergence.
+\end{itemize}
+
+\subsection{Comparison betweeen MC and TD0}
+\begin{table}[!h]
+\centering
+\begin{tabularx}{\textwidth}{|X|X|}
+\toprule
+\textbf{MC}&\textbf{TD}\\
+\midrule
+$\bullet$ Must wait until end of episode to know cost & $\bullet$ can learn after every step\\
+$\bullet$ only works for episodic environments& $\bullet$ works in non-terminating environments\\
+$\bullet$ MC target (cost-to-go) is unbiased estimate of $V_{\pi}(x_t)$, given that it is an observation& $\bullet$ TD target is a biased estimate of $V_{\pi}(x_t)$, given that it is based on the current estimation of the value (which can be arbitrary bad)\\
+$\bullet$ Higher variance estimate of $V_{\pi}(x_t)$, given that $J_t$ contains the cost of each transition and at each transition some stochasticity exists.
+
+Therefore more variance is added to the equation at each transition & $\bullet$ Lower variance estimate of $V_{\pi}(x_t)$, given that it has only one transition (the estimate of the tail is not stochastic)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+In practice, it depends which one perform better:
+\begin{itemize}
+\item MC has high variance, zero bias:
+\begin{itemize}
+\item very good convergence properties (given by the fact that has zero bias)
+\item works well even with function approximation.
+
+At a certain point in order to scale up this algorithm to be able to work with real system in continuous time, you cannot accept anymore working with arrays, given that the size will grow too much. What you need to do, as a consequence, to make it work with large systems is to use function approximation e.g. neural networks (the value functino will be a NN: instead of changing values inside the vector, we are going to change the weights of the NN).
+\item Not very sensitive to initialization.
+\item Simple to understand and use
+\end{itemize}
+\item TD has low variance, some bias:
+\begin{itemize}
+\item Usually is more efficient than MC
+\item converges to $V_{\pi}(x_t)$ faster
+\item but convergence is not guaranteed if you are using functino approximation
+\item more sensitive to the initial guess/value
+\end{itemize}
+\end{itemize}
+
+
+\subsection{Bootstrapping and Sampling}
+
+We can describe the algorithms that we have seen so far with a table.
+\missingfigure{1:28:45}
+where:
+\begin{itemize}
+\item \side{Bootstrapping}: updates of the quantity that you are trying to estimate involve an estimate (TD0).
+
+The TD target is computed based on the current estimate of the value function.
+\item \side{Sampling}: updates sample an expectation (MC).
+
+Informally we are collecting samples of a quantity and computing the mean: we are approximating an expectation using the mean over a few samples.
+\end{itemize}
+
+\subsection{n-Step return}
+Let us know take a step further and see how we can generalize MC and TD0 to a more general class of algorithms which actually include MC and TD0 as special cases.
+
+We can do that by introducing the idea of \side{n-Step return}, which is instead of collecting just one transition (i.e. one cost) and summing  to this cost the discount times the estimate of the value at the next state, we can generalize this concept to several steps:
+\begin{align*}
+n=1 &\qquad J_t^{(1)} = l_t + \gamma V(x_{t+1})&TD0\\
+n=2 & \qquad J_t^{(2)} = l_t + \gamma l_{t+1} + \gamma^2 V(x_{t+2})&\\
+\vdotswithin{n=2} &\qquad\vdotswithin{J_t^{(2)}}&\\
+n\hphantom{\,\,2} & \qquad J_t^{(n)} = l_t + \gamma l_{t+1} + ... + \gamma^{n-1} l_{t+n-1} + \gamma^{n}V(x_{t+n})&\\
+\vdotswithin{n}\hphantom{\,\,2}&\qquad\vdotswithin{J_t^{(n)}}&\\
+n=\infty&\qquad J_t^{(\infty)} = l_t + \gamma l_{t+1} + ... + \gamma^{T-1} l_{t+T-1}&MC
+\end{align*}
+
+And the update equation will be simply (\side{n-step TD learning}):
+\[V(x_t) \leftarrow V(x_t) + \alpha_t (J_t^{(n)} - V(x_t))\]
+
+In this way we introduced a new kind of algorithm to do prediction and estimating the value of a given policy where instead of using the 1-step cost-to-go (TD0) or the infinite-step cost-to-go (MC), we can use a more general n-step estimation of the cost-to-go which is going to give us some algorithms which are an inbetween MC and TD0.
+
+So, of course, an algorithm which is an hybrid between these two extreme approaches, will give us something inbetween the properties of MC and TD0: e.g. in terms of bias-variance trade-off we can imagine that as we utilize a higher value of $n$ we are going to get more and more variance in the estimate and lower and lower bias.
+
+In other terms we can make TD0 tends towards the property of MC by tuning the $n$ parameter to the values that we want.
+In fact the best performance are achieved neither with MC nor with TD0 but for a value of $n$ inbetween.
+
+\subsection{TD($\lambda$)}
+We can do something a bit more convoluted: since we have a family of algorithms (one for each value of $n$) and we do not know which one to use, what if we use all of them?\\
+So we use all the estimates of the cost to go by putting them together with some weights, and that is exactly what \side{TD($\lambda$)} does.
+
+So $TD(\lambda)$ is a new algorithm for doing prediction where you combine all the n-step costs-to-go $J_t^{(n)}$ together by using weights of the form:
+\[(1-\lambda)\lambda^{n-1}\]
+As a consequence, the \side{TD($\lambda$) target} is given by the expression:
+\[J_t^{\lambda} = (1-\lambda) \sum_{n=1}^{\infty} \lambda^{n-1} J_t^{(n)}\]
+This means that the algorithm is going to use an higher weight for the first estimate of the cost to go ($n=1$) and a smaller and smaller weight for the remaining n-step costs-to-go estimation.
+
+The reason of the $(1-\lambda)$ premultiplication is just for normalizing the weights, given that the summation of all the weights must be equal to $1$ (otherwise you are not taking an average anymore)
+\[\sum_{n=1}^{\infty}\lambda^n = \cfrac{1}{1-\lambda}\qquad \text{with: }0<\lambda<1\]
+The TD($\lambda$) algorithm can be seen in two different fashions: \side{forward view} and \side{backward view}.
+\begin{itemize}
+\item the forward view is much easier and more intuitive to think of and analyze in terms of theoretical properties but is very tricky to implement
+\item the backward view is much more convoluted and harder to analyze but this is what makes the implementation of this algorithm easier.
+\end{itemize}
+
+\subsubsection{Forward view}
+With the forward view, the value is updated as usual:
+\[V(x_t)\leftarrow V(x_t) + \alpha_t (J_t^{\lambda} - V(x_t))\]
+The problem with the implementation of this algorithm is that we can only learn from \side{complete episodes} (as in MC).
+
+That is the reason why people have derived the backward view of TD($\lambda$).
+ 
+\subsubsection{Backward view}
+The Backward view of TD($\lambda$) is a little more criptic and hard to understand how it works, but actually, given some assumption, it will be equivalent to the Forward view of TD($\lambda$).
+
+However, this view of the algorithm allows us to updates the estimate at each transition without waiting till the very end.
+
+In order to implement the Backward view of TD($\lambda$) we need to introduce new quantities called \side{Eligibility traces}, defined by the following two equations:
+\begin{align*}
+e_0(x) &= 0&\text{Initialize Eligibility trace of each state to 0}\\
+e_t(x) &= \gamma\lambda e_{t-1}(x) + 1(x_t=x)&\text{if you meet state }x\text{ the eligibility trace increase by 1}
+\end{align*}
+Once the state is met, then the eligibility trace will decrease.
+
+These quantities measure how often and how far in the past you have visited the state $x$:
+\begin{itemize}
+\item If you have visited state $x$ very recently, then the associated Eligibility trace will be a value very close to one.
+\item If you have never visited state $x$, then the associated Eligibility trace is going to be zero.
+\item If you have visited state $x$ a long time ago, then the associated Eligibility trace is going to be very close to zero.
+\end{itemize}
+
+In summary: $e(x)$ increases every time I visit $x$, otherwise it decreases exponentially and it measures how often and recently $x$ has been visited.
+
+Recalling the definition of the TD error:
+\[\delta_t = l_t + \gamma V(x_{t+1}) - V(x_t)\]
+we can now update the estimate of the value for every state we have visited according to this formulation:
+\[V(x)\leftarrow V(x) + \alpha\delta_t e_t(x)\qquad\qquad\forall x\]
+
+\subsubsection{Proof of equivalency between forward and backward view}
+\begin{itemize}
+\item When $\lambda = 0$ only the current state is updated (TD(0)), i.e.:
+\begin{align*}
+e_t(x) &= \mathbf{1}(x_t=x)\\
+V(x) &\leftarrow V(x) + \alpha\delta_t e_t(x) = 
+\begin{dcases}
+V(x) + \alpha\delta_t &\text{if }x=x_t\\
+V(x) &\text{otherwise}
+\end{dcases}
+\end{align*}
+\item When $\lambda = 1$ we get MC. 
+
+Assume $x$ is visited once at $t = k$:
+\[e_t(x) = 
+\begin{dcases}
+0&\text{if }t<k\\
+\gamma^{t-k}&\text{if }t\ge k
+\end{dcases}\]
+The accumulated updates of the value are:
+\begin{align*}
+\sum_{t=1}^{T-1} \alpha\delta_t e_t(x) &= \alpha \sum_{t=k}^{T-1} \gamma^{t-k} (l_{t+1} + \gamma V(x_{t+1}) - V(x_t))&\\
+&= \alpha [( l_{k+1} + \cancel{\gamma V(x_{k+1})} - V(x_k) + (\gamma l_{k+2} + \cancel{\gamma^2 V(x_{k+2})} - \cancel{\gamma V(x_{k+1})}) + \cancel{...} \\
+&\qquad+ (\gamma^{T-1-k}l_T-\cancel{\gamma^{T-1-k}V(x_{T-1})})& \text{Because }V(x_T) = 0\\
+&= \alpha \left[ \sum_{t=0}^{T-1-k} \gamma^t l_{k+t+1} - V(x_k)\right]&\\
+&=\alpha(J_k - V(x_k))&\Leftarrow \text{Same as MC}
+\end{align*}
+\end{itemize}
+Consequntly:
+\begin{enumerate}
+\item If Value function is only updated offline at the end of the episode then the total update of backward TD(1) is the same of MC
+\item Using a similar derivation we could show that backward TD($\lambda$) results in same updates of forward TD($\lambda$) $\forall \lambda$
+\item For online updates backward and forward TD($\lambda$) are slightly different.
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
