@@ -27,7 +27,6 @@ which means that
 x(t+h) \approx x(t) + h\,f(x,t)
 	\end{empheq}
 
-\missingfigure{1:16:25}
 So the key assumption of the Explicit Euler is to take $h$ sufficiently small in order for it to work but the methods does not specify exactly how small it must be the step. However taking $h$ small means that it will be computationally expensive.
 
 Moreover it is not very accurate (first order method).
@@ -44,9 +43,11 @@ k_1 &= f(x_0, t_0)\\
 k_2 &= f\left(x_0 + \cfrac{h}{2}\,k_1, t_0 + \cfrac{h}{2}\right)\\
 x_1 &= x_0 + h\,k_2
 \end{empheq}
-
-\missingfigure{1:16:25}
-
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.4\textwidth]{image0A04}
+\caption{Mid-Point method: find the midpoint of the interval, compute derivative, compute area starting from the initial point of the interval using the slope of the midpoint}
+\end{figure}
 \begin{enumerate}
 \item Use the slope in the middle of the step to integrate forward
 \item Estimate $x\left(t_0 + \cfrac{h}{2}\right)$ with the slop at $t_0$

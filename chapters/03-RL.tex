@@ -48,7 +48,7 @@ Markov property means that if you know the current state of the system than know
 The state tells you everything you know about the system.
 
 Or in other terms: the future is independent on the past given the present.
-\[\mathbb{P}(x_{t+1}|x_t) = \mathbb{x_{t+1}|x_1,...,x_t}\]
+\[\mathbb{P}(x_{t+1}|x_t) = \mathbb{P}(x_{t+1}|x_1,...,x_t)\]
 It can be immediately seen that the system is considered stochastic.
 
 The motion of the state is defined by the \side{State transition probability} which the probability of going from one state $x$ to another state $x'$
@@ -70,7 +70,11 @@ A \side{Markov Process} is defined by a tuple $<\mathcal{X}, \mathcal{P}>$, wher
 \item $\mathcal{P}$ is the \side{state transition probability matrix}
 \end{itemize}
 A Markov Process is also known as a \side{Markov Chain}
-\missingfigure{33:16}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.9\textwidth]{image0301}
+\end{figure}
 
 In particular, since $\mathcal{P}$ has all nonegative entries, and it is also \side{irreducible} (associated to a \side{strongly connected graph}), by using \side{Perron-Frobenius theorem} we know that:
 \begin{itemize}
@@ -107,7 +111,11 @@ We consider the expected value because we assume that the system is stochastic.
 which discounts the cost into the future
 \end{itemize}
 If we consider the example of Markov Process described before
-\missingfigure{52:50}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width = .7\textwidth]{image0302}
+\end{figure}
 We can translate it into a Markov Reward Process, by simply adding a cost associated with each state. In this situation the lower the cost, the better, since the agent is rewarded for studying and punish for doing breaks and going home.
 
 Regarding the discount factor, the parameter enters into the computation of the cost-to-go (or return), which is nothing more than the total discounted cost from time $t$ to $\infty$:
@@ -127,7 +135,7 @@ Following the above definition, we can infer that $\gamma$ represents the prefer
 \item If the cost is associated with some \side{monetary budget}, interest rate and inflation can be modeled using the discount factor. 
 \end{itemize}
 
-\subsection{Bellman equation in the context of RF}
+\subsection{Bellman equation in the context of RL}
 Let us define the cost starting from state $x$, as:
 \[V(x) = J_t(x_t=x)\]
 The \side{Bellman Equation} can be obtained by decomposition of the cost in two parts (assumption: no control input):
@@ -281,7 +289,12 @@ The main reason of this change in approach is due to the fact that in Optimal co
 \item Theory is simpler (you start fro the last time step and you already now the Value function associated with it)
 \item mostly used in Optimal Control
 \item the policy and Value function depends on time, because depending on how much time you have left, the optimal thing to do might be different.
-\missingfigure{9:45}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width = .3\textwidth]{image0303}
+\caption{With a finite horizon (if not much time is left to reach the target) the best thing the algorithm can do is get as close as possible to the goal point, with an infinite horizon the algorithm has enough time to find the path that reaches the goal position}
+\end{figure}
 \end{itemize}
 \item Infinite horizon
 \begin{itemize}
@@ -610,7 +623,19 @@ At a certain point in order to scale up this algorithm to be able to work with r
 \subsection{Bootstrapping and Sampling}
 
 We can describe the algorithms that we have seen so far with a table.
-\missingfigure{1:28:45}
+\[
+\begin{NiceArray}{cWc{4cm}c|Wc{4cm}Wc{4cm}}
+\Block{3-3}{\diagbox{\qquad\text{Sampl.}\vspace{2mm}}{\vspace{2mm}\text{Bootstr.}\qquad}} &&&&\\
+&&&\text{No} & \text{Yes}\\
+&&&&\\
+\hline
+&&&&\\
+&\text{No} && \text{Exhaustive \newline Search} & \text{DP}\\
+&&&&\\
+&\text{Yes} &&\text{MC}& \text{TD}\\
+&&&&
+\end{NiceArray}
+\]
 where:
 \begin{itemize}
 \item \side{Bootstrapping}: updates of the quantity that you are trying to estimate involve an estimate (TD0).
