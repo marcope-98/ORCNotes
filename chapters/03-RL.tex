@@ -249,7 +249,8 @@ We obtained:
 \item Iterative algorithm are utilized to find the solution
 \end{itemize}
 
-\section{Dynamic Programming}
+\section{Model Based Control}
+\subsection{Dynamic Programming}
 Before diving deep into Reinforcement Learning algorithms we need to understand the algorithmic foundation of RL, which is \side{Dynamic Programming}.
 
 We have already discussed Dynamic Programming in the context of Optimal Control, but as we will see in this section RL rely much more on Dynamic Programming than Optimal control.
@@ -467,7 +468,7 @@ This for loop can be simply rewritten as:
 \end{enumerate}
 
 
-\section{Model-Free Prediction}
+\section{Model Free Prediction}
 In this section we dive deep into the decision process of Reinforcement Learning: in fact, so far, we assumed that the MDP is given and well defined (as well as the dynamics of the system) and we were able to exploit it in order to find the optimal policy or the value function given a fixed policy.
 
 From now on, we will start relaxing this assumption, i.e. we do not know the MDP and we can only choose the control inputs and observe state and cost.\\
@@ -742,7 +743,8 @@ Assume $x$ is visited once at $t = k$:
 The accumulated updates of the value are:
 \begin{align*}
 \sum_{t=1}^{T-1} \alpha\delta_t e_t(x) &= \alpha \sum_{t=k}^{T-1} \gamma^{t-k} (l_{t+1} + \gamma V(x_{t+1}) - V(x_t))&\\
-&= \alpha [( l_{k+1} + \cancel{\gamma V(x_{k+1})} - V(x_k) + (\gamma l_{k+2} + \cancel{\gamma^2 V(x_{k+2})} - \cancel{\gamma V(x_{k+1})}) + \cancel{...} \\
+&= \alpha [( l_{k+1} + \cancel{\gamma V(x_{k+1})} - V(x_k) \\
+&\qquad+ (\gamma l_{k+2} + \cancel{\gamma^2 V(x_{k+2})} - \cancel{\gamma V(x_{k+1})}) + \cancel{...} \\
 &\qquad+ (\gamma^{T-1-k}l_T-\cancel{\gamma^{T-1-k}V(x_{T-1})})& \text{Because }V(x_T) = 0\\
 &= \alpha \left[ \sum_{t=0}^{T-1-k} \gamma^t l_{k+t+1} - V(x_k)\right]&\\
 &=\alpha(J_k - V(x_k))&\Leftarrow \text{Same as MC}
@@ -756,20 +758,324 @@ Consequntly:
 \end{enumerate}
 
 
+\section{Model Free Control}
+
+In this section we will cover the application of RL to control. We first encountered \side{Model Based Control} with the Dynamic Programming algorithms, but in this instance we will dive deep into the \side{Model Free Control} (i.e. given a MDP how can we find a globally optimal policy to behave inside this process?).
+
+First of all, when we want to do control we need to be a bit more specific about what our objectives are and what our assumptions are since we might end up with quite different algorithms depending on what we care about.
+
+\subsection{Types of control learning problems}
+First and foremost, we need to distinguish between cases in which we assume that we can choose how to interact with the environment versus cases in which how we interact with the environment is already predefined (we can only observe the data that is collected with a given policy or maybe data that was collected in the past).
+
+Furthermore if we assume that there is interaction with the environment, we need to distinguish between two cases:
+\begin{enumerate}
+\item Offline performance optimization: in which we optimize the performance of the system after the learning process has finish.
+
+In this scenario, we have a phase in which we want to learn the policy, but we do not care how it performs and then a second phase in which we care about performing very well (without the learning).
+\item Online performance optimization: in which what we really want to optimize (miximize/minimize) is the cost during training. At the same time we would like to learn and perform well in the task. (more challenging)
+\end{enumerate}
+
+\begin{table}[!h]
+\centering
+\begin{NiceTabular}[corners, hvlines]{ccW{c}{5cm}W{c}{5cm}}
+&  & \multicolumn{2}{c}{\gape[t]{\makecell{\textbf{Interaction}}}}\\
+&&Yes&No\\
+\Block{2-1}{\rotate \textbf{optimize performance}} \rule[-1.1cm]{0pt}{2.5cm}  & Offline & \makecell{Active\\Learning}& \makecell{Non-Interactive\\Learning}\\
+ \rule[-1.1cm]{0pt}{2.5cm} &Online&\makecell{Online\\Learning}& 
+ \end{NiceTabular}
+\end{table}
 
 
+Formally:
+\begin{itemize}
+\item by \side{Interactive} we refer to the case in which the learner can actively influence observations
+\item by \side{Online perfomance} we mean the Cost-to-go while learning
+\item by \side{Offline performance} we mean the Cost-to-go after learning
+\end{itemize}
+
+The most common scenario that is treated in RL is \side{Online Learning}, and that is what we are going to focus on. From an objective point of view, this class of algorithms is more challenging than \side{Active Learning}, but easier than \side{Non-Interactive Learning}.
+
+The main challenge of Online Learning is finding a tradeoff between performing well and learning because tipically the action that need to be taken in order to learn are not necessarily the same actions that you need to take in order to perform well (e.g. In order to learn better you need to make some mistakes).
+
+\subsection{Control Learning Methods}
+When it comes to the specific of how to do the learning phase, then we need to distinguish between two categories:
+\begin{enumerate}
+\item cases in which we assume that the MDP is known vs unknown
+\item cases in which we learn the Value function or the Q function vs Value function or the Q function and the policy
+\end{enumerate}
+We already covered the cases of learning with a known MDP, namely Value iteration and Policy iteration.
+
+Whereas in case of unknown MDP, when we want to learn only the Q function the class is called \side{Direct Methods}, instead when we want to learn both the Q function and the policy, the class is called \side{Actor-Critic Methods} (because the policy is thought as an actor and the Q function is thought as a critic that evaluates the behaviour of the policy/actor).
+
+\begin{table}[!h]
+\centering
+\begin{NiceTabular}[corners, hvlines]{ccW{c}{5cm}W{c}{5cm}}
+&  & \multicolumn{2}{c}{\gape[t]{\makecell{\textbf{Learned Quantities}}}}\\
+&&$V(x) / Q(x,u)$&$V(x) / Q(x,u) \,+ \, \pi$\\
+\Block{2-1}{\rotate \textbf{MDP}} \rule[-0.5cm]{0pt}{1.2cm}  & Known & Value Iteration & Policy Iteration\\
+ \rule[-0.5cm]{0pt}{1.2cm} &Unknown&Direct Methods&Actor-Critic Methods 
+ \end{NiceTabular}
+\end{table}
+
+Please note that when we know the MDP we learn the Value function whereas when the MDP is unknown we learn the Q function.
+The reason lays on the fact that when we want to compute the policy from the value, we need to compute the following minimization
+\[\pi(x) = \argmin_u l(x,u) + \gamma V(x')\]
+However, with an unknown MDP we cannot compute the next state $x'$, therefore the best thing we can do is minimize the equivalent Q function:
+\[\pi(x) = \argmin_u l(x,u) + \gamma V(x') =\argmin_u Q(x,u)\]
+An alternative would be to learn separately the Value function and the dynamics, then the first expression would be enough, but if we only know the value function that specific minimization is not enough.
+
+\subsection{On-policy vs Off-policy learning}
+There is yet another distinction that we need to make in order to discuss about RL alogithms:
+\begin{itemize}
+\item \side{On-policy}
+
+We want to learn a certain policy $\pi$ while we follow that policy $\pi$. So the control inputs are decided by this policy and we want to learn about this policy.
+\begin{itemize}
+\item \emph{learn on the job}
+\item learn about policy $\pi$ from experience sampled from $\pi$.
+\end{itemize}
+\item \side{Off-policy}
+
+The policy utilized to control the system is not the same one we want to learn.
+\begin{itemize}
+\item \emph{look over someone's shoulder}
+\item learn about policy $\pi$ from experience sampled from $\mu$ (i.e. another policy).
+\end{itemize}
+\end{itemize}
+
+This is interesting especially under the perspective of \side{Safety}: in RL the first step is to explore in order to gather data given that, in the beginning, it knows nothing about the system is controlling so it going to do random things. This is tipically not really safe. 
+
+So when we work with safety critical systems is quite common that the policy that you want to use to control the system is not the same that you want to learn (e.g. control the robot manipulator with a classical and reliable algorithm such as PID, but as you collect the data you want to learn about the fancy optimal policy which eventually will be used to control the system).
+
+\subsection{Direct Methods: Q learning}
+\side{Direct methods} are a class of methods in which you only learn the Q function not the policy, since you will figure out the policy later by  minimizing the Q function.
+
+The idea is to work iteratively update an estimate of the Q function $Q_k(x,u)$ and improve it to the optimal Q function $Q^*(x,u)$.\\
+Here we are still working on a discrete space setting, so the state and control space are finite and the Q function is a table/matrix with $\abs{\mathcal{X}}\times\abs{\mathcal{U}}$ dimension (i.e. Q function associated with a specific state and control).
+
+You therefore control the system with some policy and at each transition you keep track of 
+\[(x,u,l(x,u), x')\]
+and you use them to improve the estimate of Q with the update rule based on the temporal difference learning:
+\[\delta(Q) = l + \gamma \min_{u'}Q(x',u') - Q(x,u)\qquad \forall (x,u)\]
+Given this TD error, which measure the difference between the expected Q $Q(x,u)$ and the estimation of Q based on the current measure of the cost $l + \gamma\min_{u'} Q(x',u')$.
+Based on that error you can update the estimate of Q as:
+\[Q_{k+1}(x,u) = Q_k(x,u) + \alpha_k \delta(Q_k)\]
+
+We can notice that it is quite similar to TD0, but the main difference is that the TD error is not computed based on the value function, since we are doing control, and the presence of a minimization.
+
+When we reach stochastic equilibrium for each pair state and control which need to be \side{visited infinitely often} we obtain:
+\[\mathbb{E}[\delta(Q)]=TQ-Q=0\]
+We know that there is only one Q function that satisfies this expression which is a \side{unique fixed point} of the Bellman optimality operator. This imples that Q at stochastic equilibrium converges to the optimal Q function:
+\[Q =Q^*\]
+Of course $Q_k$ converges when appropriate learning rates $\alpha_k$ are used.
+
+Q learning is a off-policy method. 
+
+A key point in this convergence proof is that all pair of state and control needs to be visited infinitely often: this means that the algorithm needs to explore the entire state and control spaces (i.e. need \side{exploration}).
+
+\subsubsection{Online learnign in ``bandits''}
+How do you choose the control/action $u$?
+
+Probably the most intuitive things to do is say: we have an estimate of the Q function, which tells us how good a certain control is when we are in a given state, can't we simply choose the control input that minimizes Q for the current state (i.e. being greedy)?
+
+Of course the answer is no: if you just behave greedly then you are not going to explore everything and you are not gonna meet the convergence requirements.
+
+\begin{proof}[\textbf{Example}]
+Imagine to have 2 doors in front of you and you can choose to open either of those with a certain cost associated with them. You goal is to minimize the cost and the system that assigns the cost is stochastic (i.e. you are not always gonna get the same cost when opening the same door).
+
+You objective if you want to minimize the cost-to-go with a infinite horizon is to find out which of the 2 doors has the lower expected value, because if you sample the door with the lower expected value infinitely many times the cost that you are going to get, on average, will be the expected value associated with that door.
+
+The problem is as follows:
+\begin{align*}
+\bullet& \text{Left door} &\qquad& \Rightarrow&\qquad& l = 0 & \qquad& \Rightarrow&\qquad& V(left) = 0\\
+\bullet &\text{Right door} & \qquad& \Rightarrow&\qquad& l = -1 & \qquad& \Rightarrow&\qquad & V(right) = -1\\
+\bullet &\text{Right door} & \qquad& \Rightarrow&\qquad& l = -3 & \qquad& \Rightarrow&\qquad& V(right) = -2
+\end{align*}
+With a greedy approach you are going to sample the door that yielded the lower cost in the first sample. However, we have no guarantee that the right door is better than the left door, since we will continue sampling the right door.
+\end{proof}
+
+This is a problem well studied in RL called \side{Exploration-Exploitation trade-off} because you have two conflicting objectives when doing online learning: explore and learn more and improve your policy, but at the same time you want to minimize your cost-to-go that is exploit the knowledge that you already collected.
+
+This is studied in a very simple MDP with a single state, i.e. no evolution of the state, (so called ``\side{bandit problem}'').
+
+\begin{itemize}
+\item \side{Greedy strategy}:
+\begin{itemize}
+\item Always choose control with best estimated cost
+\item It can fail to find the best action/control (large loss over time)
+\item Good learner must choose sub-optimal control to explore
+\end{itemize}
+\item \side{$\epsilon$-Greedy strategy}
+\begin{itemize}
+\item Choose random control with probability $\epsilon$
+\item Choose greedy control with probability $1-\epsilon$
+\item Simple way to ensure exploration
+\item $\epsilon$ can change over time (tipically decreasing to 0), given that in the beginning you would like to explore a lot and not minimize Q, whereas as soon as you collect more data your estimate becomes better and better, so it makes more sense to be greedy.
+\end{itemize}
+\item \side{Boltzmann Exploration}
+
+Not choose always the greedy action as the best action but assign probability to each control proportional to the value associated with that control.
+\begin{itemize}
+\item Choose control with probability proportional to its mean
+\[\pi(u) = \cfrac{exp(-\beta Q_t(u))}{\sum_{u'\in\mathcal{U}}exp{(-\beta Q_t(u'))}}\qquad Q_t(u) =\text{mean cost obtained applying } u\]
+\item For $\beta \rightarrow \infty$, we retrieve greedy strategy.
+\item Choose more often controls that should lead to low cost.
+\item The potential problem is if you are unlucky in the beginning with a given action/control, you might get a very high cost, then you are going to assign a very low probability to that control. So it might take a very long time to correct the estimation of the value associated with that control.
+\end{itemize}
+\item \side{Optimism in the face of uncertainty}
+
+You keep track of how much uncertaint you are about the value of each control input and how uncertaint you are depends on how many times you have sampled that control input. Since when you have a lot of uncertainty you try to be optimistic, you favour the control input with the highest uncertainty.
+\begin{itemize}
+\item Choose control with \side{Lowest Confidence Bound (LCB)}
+\item \[LCB(u) = Q(u) - \text{uncertainty on }Q(u) = Q_t(u) - L\,\sqrt{\cfrac{2\,\log(t)}{n_t(u)}}\]
+\item \[L = \max{(\abs{l(t)})}\qquad,\qquad n_t(u) = \text{\# times }u\text{ was selected}\]
+\end{itemize}
+Note that the uncertainty associated with a control is going to decrease as the number of times that control was selected increase.
+\end{itemize}
+
+\subsection{Actor-Critic methods: Generalized policy iteration}
+So inside the \side{Actor-Critic methods} the largest family of methods are the so called \side{Generalized policy iteration} because they are a generalization of the Dynamic Programming algorithm Policy iteration.
+
+In particular:
+\begin{itemize}
+\item Extension of Policy Iteration to unknow MDP
+\item The key idea of Policy Iteration is to alternate between two phases, given a policy and the Q function.
+
+You alternate between evaluating the current policy to update the value/Q function and then in the second phase, given the value function that you estimated improve the policy by acting greedly w.r.t. that estimation of the value.
+
+In short: alternate between \side{policy evaluation} and \side{policy improvement}
+\item The generalization of policy evaluation phase can be done with Model Free prediction methods (MC, TD0, TD$\lambda$).
+
+However this is time consuming. So generally you are not going to wait for an accurate evaluation of the policy, but you are just going to evaluate it roughly and then try to improve the policy based on that rough evaluation of the previous policy.
+\item Exact policy evaluation can take infinitely many samples
+\item Solution: improve policy based on approximate Value function
+\end{itemize}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width = .9\textwidth]{image0304}
+\end{figure}
+
+This class of methods is called Actor-Critic because the value function is called \side{critic} given that it evaluates the policy, which is called \side{actor}, in order to improve it.
+
+Moreover, this class of methods is on-policy, therefore the policy that you are using to act/choose the control inputs must be the same policy that you want to evaluate. However, this is not completely true since there is always the need for exploration, so you cannot just act greedly w.r.t. the value, there must be some kind of exploration mechanism.
+
+For this reason, the policy used to generate transitions is typically not the same that is evaluated and improved.
+\begin{itemize}
+\item The \side{behavior policy} mixes a small amount of exploration into the \side{tarket policy}
+\end{itemize}
+
+The key difference between GPI and PI is that in GPI there is no guarantee that at each iteration is going to be a bit better then the previous one (GPI can generate policies that are worse than previous ones).
+
+\subsubsection{SARSA: policy evaluation}
+Let us now investigate a specific algorithm that falls into this class, called \side{SARSA}.
+
+The name comes from the notation that it is used into reinforcement learning:
+\begin{itemize}
+\item the state $x$ is called state $s$
+\item the control $u$ is called action $a$
+\item the cost $l$ is called reward $r$
+\end{itemize}
+
+Since at each iteration we observe of keep track of the tuple:
+\begin{gather*}
+(x,u,l,x',u')\\
+(s,a,r,s,a)
+\end{gather*}
+
+The key idea of SARSA is to exploit TD(0) in order to learn Q from on-policy samples (since we are estimating the value of the policy who uses $u'$).
+
+Tipically an $\epsilon$-greedy policy is utilized to act and at each transition you collect a tuple with the initial state and control, the cost and the next state and control. You use this information in order to update the estimate of the Q function according to the following expression:
+\begin{align*}
+\delta(Q) &= l(x,u) + \gamma Q(x',u') - Q(x,u)\\
+Q_{k+1}(x,u) &= Q_k(x,u) + \alpha_k\delta(Q_k)
+\end{align*}
+
+\begin{itemize}
+\item It is very similar to Q learning, but it uses $Q(x',u')$ instead of $\min_{z} Q(x', z)$.
+\item if $\pi$ was fixed you would obtain the same equation as temporal difference learning.
+\item we are constrained to use TD(0), we can extend the algorithm to TD(N) or TD($\lambda$).
+\item as TD, SARSA can diverge in off-policy situations
+\end{itemize}
 
 
+\subsubsection{SARSA: policy improvement}
+We have different options available:
+\begin{enumerate}
+\item The simplest one is to take the policy that is greedy w.r.t. Q, since a greedy policy can be computed on the fly, because for each state that we need to choose a control input for we can just look at the Q for that state, look at all the value of Q for all the control inputs and choose the one that minimizes Q.
+\item Use $\epsilon-$ greedy as behavior policy to ensure exploration.
+\end{enumerate}
+
+Even for SARSA we have some guarantee of convergence to $Q^*(x,u)$ if:
+\begin{itemize}
+\item \side{Greedy in the Limit with Infinite Exploration (GLIE)}.
+
+This means that the algorithm is allowed not to be greedy in the limit, but as time goes towards infinity the policy needs to tend towards a greedy policy and we need to have infinite exploration.
+
+Formally:
+\begin{itemize}
+\item All state-control pairs are visited infinitely many times
+\item Policy converges to a greedy policy, e.g.:
+\[\epsilon_k = \cfrac{1}{k}\]
+\end{itemize}
+\item \side{Robbins-Monro (RM) conditions} sequence of step sizes:
+\[\sum_{k=1}^{\infty} \alpha_k = \infty \qquad;\qquad \sum_{k=1}^{\infty} \alpha_k^2 < \infty\]
+\end{itemize}
+
+Summary:
+\begin{table}[!h]
+\centering
+\begin{NiceTabular}[hvlines]{cc}
+\textbf{DP}&\textbf{TD}\\
+\makecell{Policy Evaluation\\\\$V(x) = l+\gamma V(x')$} \rule[-1.1cm]{0pt}{2.5cm} & \makecell{TD Learning\\\\$V(x)\xleftarrow{\alpha} l +\gamma V(x')$}\\
+\makecell{Policy Iteration\\\\$V(x) = l+\gamma V(x')$\\$\pi(x)= \argmin_u l + \gamma V(x'(u))$} \rule[-1.1cm]{0pt}{2.5cm} & \makecell{Sarsa\\\\$Q(x,u)\xleftarrow{\alpha} l +\gamma Q(x', u')$\\$\pi(x) = \argmin_u Q(x,u)$}\\
+\makecell{Value Iteration\\\\$V(x) =\min_u l + \gamma V(x'(u))$} \rule[-1.1cm]{0pt}{2.5cm} & \makecell{Q-Learning\\\\$Q(x,u)\xleftarrow{\alpha} l +\gamma \min_{u'} Q(x',u')$}
+\end{NiceTabular}
+\end{table}
+
+\section{Value function Approximator}
+The problem with the algorithms of Model Free Control is that we assumed the MDP to be discrete (i.e. state and control spaces are discrete) which makes this spaces very very large if you want to apply them to real problems.
+
+Discrete-space algorithms do not scale to large systems
+\begin{itemize}
+\item{\makebox[3cm]{Backgammon:\hfill} $10^{20}$ states}
+\item{\makebox[3cm]{Go:\hfill} $10^{170}$ states}
+\item{\makebox[3cm]{Robot:\hfill} continuous state space}
+\end{itemize}
+In all these cases there are too many states/controls to store and learn.
+
+In order to solve this problem: instead of representing the value or Q function with a table or an array we can use function approximation techniques in order to approximate these functions
+\[\hat{V}(x,w) \approx V_{\pi}(x)\qquad,\qquad \hat{Q}(x,u,w) \approx Q_{\pi}(x,u)\]
+where $w$ are the parameters of the function.
+
+This function approximation are nothing more than parametric functions, so the learning process aims to learn the function parameters such that the function approximator reseambles the actual functions and, as a consequence, reduce the size of the vector that you work with.
 
 
+\subsection{Types of value function approximation}
 
+\begin{minipage}{0.3\textwidth}
+\centering
+\includegraphics[width = .95\textwidth]{image0305}
+\end{minipage}
+\hfill
+\begin{minipage}{.7\textwidth}
+First of all both Q and/or V can be learnt:
+\begin{enumerate}
+\item You can learn the Value function by tuning the parameters of the function approximator, by providing as input the state $x$
+\item You can learn the Q function by tuning the parameters of the function approximator, by providing as input both state $x$ and control $u$
+\item You can parametrize the Q function, in the case of discrete control space, by providing as input only the state $x$, obtaining several output each of which corresponds to each possible value of the control input $u_1, ..., u_m$.
+\end{enumerate} 
 
+\end{minipage}
 
+Very often, in the context of RL, the kind of value function approximators that are used are \side{Neural Networks}.
 
-
-
-
-
+However any differential approximator can be used:
+\begin{itemize}
+\item linear combination of features (arbitrary functions of the state)
+\item Fourier basis
+\item Polynomials
+\end{itemize}
 
 
 

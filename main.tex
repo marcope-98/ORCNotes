@@ -10,7 +10,6 @@
 \input{lib/acronyms}
 \input{lib/commands}
 
-
 \title{Advanced Optimization-based Robot Control}
 \author{Marco Peressutti\\230403\\marco.peressutti@studenti.unitn.it}
 \date{\today}
@@ -25,7 +24,7 @@ chapters/0A-NumericalIntegration,%
 chapters/0B-LyapunovStability}
 	
 \addbibresource{{bib/bibliography.bib}}
-\graphicspath{{images/},{images/Appendices}, {images/chapter1/}, {images/chapter2/}, {images/chapter3/}}
+\graphicspath{{images/},{images/Appendices}, {images/chapter1}, {images/chapter2}, {images/chapter3}}
 \makeglossaries
 
 \begin{document}
@@ -33,6 +32,7 @@ chapters/0B-LyapunovStability}
 \maketitle
 \printglossaries
 \tableofcontents
+
 %\begin{empheq}[box=%
 %	\fbox]{gather*}
 %		\mathbf{OP} = f(q_1,\dots,\,q_N,\,t)
@@ -47,6 +47,10 @@ chapters/0B-LyapunovStability}
 
 \include{chapters/0A-NumericalIntegration}
 \include{chapters/0B-LyapunovStability}
+
+\clearpage
+\addcontentsline{toc}{chapter}{{Index}}
+\listoftodos[Index]
 
 \clearpage
 \chapter*{Bibliography}
