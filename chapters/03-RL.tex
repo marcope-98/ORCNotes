@@ -1077,6 +1077,138 @@ However any differential approximator can be used:
 \item Polynomials
 \end{itemize}
 
+The main problem with these approach is that we are trying to approximate a \side{non-stationary target} (i.e. $V$) and the data is not \side{independent normally distributed i.i.d.}.
+
+\subsection{Gradient descent}
+In order to fit the value function via function approximators, the most common approach that is used is the \side{Gradient Descent}, which consists of taking a small step in the direction of gradient of the function that you want to minimize, i.e.:
+\begin{align*}
+\min_w J(w) \qquad \Rightarrow \qquad& w = w-\cfrac{1}{2}\,\alpha\,\nabla_w\,J(w)\\
+& \alpha = \text{ step-size parameter}
+\end{align*}
+If the step is sufficiently small then the algorithm will converge to a local optimum.
+
+In the context of RL we do not use gradient descent but a slight variation called \side{Stochastic Gradient Descent (SGD)}. The reason it is stochastic is that the quantity that we are trying to minimize is an expectation of the square difference between the real value function and the approximated value function. 
+
+It is an expectation because the value of this depends on the policy $\pi$, hence we want to take the expectation of $u$ following the distribution of the policy $\pi$.
+
+\begin{align*}
+J_w &= \mathbb{E}_{\pi} [(V_{\pi}(x) - \hat{V}(x,w))^2]\\
+\Delta w &= -\,\cfrac{1}{2}\,\alpha\,\nabla_w\,J = \alpha \mathbb{[(V_\pi - \hat{V})\nabla_w\,\hat{V}]}
+\end{align*}
+Since we do not have any tool to actually compute the argument of the expectation, one workaround is to sample such quantity for different value of the state. By doing so, the update rule of the coefficient takes the form:
+\[\Delta w = \alpha\,(V_{\pi}(x) - \hat{V}(x, w))\nabla_w\,\hat{V}(x,w)\]
+Similarly to what we did with MC or TD learning: we run a simulation following a policy $\pi$ that we want to evaluate, encountering different states (i.e. our actual samples).
+
+The interesting things about this approach is that there is a whole theory behind this stochastic gradient descent method, which tells us that if we perform the update in such a way, (by sampling the gradient that we want to minimize), then the expected update is equal to the full gradient update that we would get by computing the gradient of the expectation.
+
+Of course, the stochasticity of the system will cause the gradient update to be noisy, but on average the noisy is going to cancel out and ultimately the algorithm will perform a step in the right direction.
+
+Now the next question is: how do we get the target $V(x)$?
+\subsection{Incremental prediction algorithms}
+In order to perform SGD we need a target for our value function, an oracle that can tell us the value function that the function approximator should fit.
+
+We have already seen how to get it when we looked at the prediction problem (how to evaluate a policy and compute the value of that policy).
+We have also seen that there are two main classes of approaches to get the value:
+\begin{itemize}
+\item For MC, the target is obtained by computing the cost-to-go $J_t(x)$.
+
+As a consequence, a simulation is run, the costs are collected for each time step and once one reaches the end, the cost-to-go is computed for each state by doing a backward computation.
+
+In the end, the update rule of the coefficient will take the form:
+\[\Delta w = \alpha\,(J_t - \hat{V}(x_t, w))\,\nabla_w \hat{V}(x_t, w)\]
+Note: the gradient of the value function approximation depends on the method use to approximate the function.
+
+MC converges to local optimum even with nonlinear approximators; in the case we are using a linear approximators then the problem will be a convex/quadratic problem and the local optimum will be also a global optimum.
+
+\item For $TD(0)$, the target given by the TD target:
+\[\Delta w  = \alpha (l_t + \gamma \hat{V}(x_{t+1}, w) - \hat{V}(x_t, w)) \nabla_w \hat{V}(x_t,w)\]
+TD does not have the same properties as MC, but it converges (close) to global optimum with linear approximators. In case of nonlinear approximators this approach is not guaranteed to converge given that there is bias in the estimator.
+\end{itemize}
+
+With these \side{Incremental Predition algorithms}, we can do prediction using function approximation, and we can extend this approach to control.
+
+\section{Incremental Control with function approximation}
+When we switch from prediction to control, we need to switch from value function to action value function $Q$, since we do not know the dynamics.
+
+The idea is to Generalized policy iteration with an approximate action-value function, i.e.:
+\[J(w) = \min_w \mathbb{E}_{\pi}[(\hat{Q}(x,u,w) - Q_{\pi}(x,u))^2]\]
+
+Once again SGD will be used to find the local minimum, which translates to:
+\begin{itemize}
+\item For MC, target is cost-to-go $J_t(x_t, u_t)$
+\item For TD(0), the target is $l_t(x_t, u_t) + \gamma \hat{Q}(x_{t+1}, u_{t+1}, w)$
+\end{itemize}
+And then, as we did before, we can use an $\epsilon$-greedy polity to ensure exploration.
+
+How can we get a greedy behaviour with a continuous space? For the moment we are going to focus on the case in which the space is continuous but the control space is discrete. Because if the control space is discrete then it is really easy to implement the greedy control policy by minimizing the estimation of the Q function because it requires just to compute the Q function for all possible control inputs.
+
+If instead, the control space was continuous then this problem of being greedy w.r.t. Q becomes much more complex since it requires to define a new optimization problem in continuous space in order to be greedy. However, in this circumstance you cannot ensure that you are going to be globally greedy.
+
+\subsection{Convergence of Control Algorithm}
+
+\begin{center}
+\begin{NiceTabular}[corners]{c|ccc}
+&Table Lookup & Linear & Nonlinear\\
+\hline
+MC control & \cmark&(\cmark)&\xmark\\
+Sarsa &\cmark&(\cmark)&\xmark\\
+Q-learning&\cmark&\xmark&\xmark
+\end{NiceTabular}
+\end{center}
+where
+\cmark indicates that the algorithm is guaranteed to converge, (\cmark) indicates that the algorithm chatter around the optimum and \xmark indicates that the algorithm is not guaranteed to converge.
+
+\subsection{Batch Learning}
+Instead of learning incrementally, learn after having collected a batch of traning data, i.e. collect all the data by running the policy for some number of episodes and then use all this batch of data points to perform an update of the weights of the neural network.
+
+The function that you want to minimize in that case is the least-squares prediction, i.e.:
+\[\min_w \sum_{t=1}^T \,(V_t - \hat{V}(x_t, w))^2\]
+The result of doing batch learning can be achieved by using a so called \side{Experience replay buffer}, which is nothing more than a list of all the data points that were observed in the past:
+\begin{itemize}
+\item Each time you take a simulation step you store the state and the value associated to that state $<x_t, V_t>$ in the replay buffer
+\item When the buffer is full, you sample from buffer
+\item Apply SGD to update the weights $w$ (what is different is that we are not updating $w$ at every step, and we are not using the latest data point to update the weights, but instead we are using data points at different point in time and states).
+\item It is guaranteed to LS solution
+\end{itemize}
+The reason we are not using Batch Learning is that the batch would be too large.
+
+\subsection{Deep Q-Network}
+In order to make this really work for continuous state space we need to introduce another trick presented in the algorithm called \side{Deep Q-Network} (2015, MNIH et al.).
+
+It is an extension of Q learning to continuous state space, whereas the control space is still discrete.
+
+It uses neural network to represent the Q function $Q(x,u,w)$. The policy that was used is an $\epsilon-$greedy policy with $\epsilon$ decreasing over time.
+
+Uses experience replay buffer:
+\begin{itemize}
+\item Store transitions $(x_t, u_t, l_t, x_{t+1})$ in replay buffer
+\item Every few steps (e.g. 4) sample randomly from replay buffer a mini-batch of transitions (e.g. size 32)
+\item Use stochastic gradient descent to optimize $w$
+\end{itemize}
+
+What is new is to use \side{fixed Q targets}. In fact, since you are using Temporal difference to compute the targets for fitting the Q function, instead of using just one Q network you are going to use a different network to compute the targets and one network to update the weights.
+\begin{itemize}
+\item Compute Q targets using old-fixed parameters $w^-$ (old values of the parameter $w$)
+\item Optimize MSE between Q-network and Q-learning targets
+\[\minimize_w \mathbb{E}[l + \gamma\,\min_{u'}\, Q(x', u', w^-) - Q(x,u,w)]\]
+\item Every C steps update the target weights:
+\[w^- \leftarrow w\]
+That is the purpose of stabilizing the algorithm since if you do not fix the parameters of your target network, instability can be observed: the target that you are trying to reach is constantly moving since it depends on $w$ and $w$ is constantly changing.
+
+By keeping a target fixed, we give enough time to the SGD to converge to that time before you update the target.
+\item Store $w$ resulting in best performance as performance can get worse during training.
+\end{itemize}
+
+\subsection{Implementation TIps}
+\begin{itemize}
+\item Implement new Pendulum environment with continuous state and discrete control
+\item Install tensorflow
+\item Read papers in folder orc/03\_assignment
+\item Read code in ``DQN template.py''
+\item Use online documentation of tensorflow and keras
+\item If you manage to make it work for simple pendulum you can then try it with a double pendulum or ur5 robot
+\end{itemize}
+
 
 
 
